@@ -1,0 +1,14 @@
+﻿Сборка начата 16.02.2017 21:21:17.
+     1>Проект "C:\Users\Corrector\Documents\GitHub\Test1\Test1\Test1.vcxproj" в узле 2 (целевые объекты Build).
+     1>Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Corrector\Documents\GitHub\Test1\Debug\Test1.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /Debug /PDB:"C:\Users\Corrector\Documents\GitHub\Test1\Debug\Test1.pdb" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Corrector\Documents\GitHub\Test1\Debug\Test1.lib" /MACHINE:X86 Debug\PlayCell.obj
+         Debug\PlayField.obj
+         Debug\PlaySession.obj
+         Debug\Ship.obj
+         Debug\Source.obj
+         Test1.vcxproj -> C:\Users\Corrector\Documents\GitHub\Test1\Debug\Test1.exe
+     1>Сборка проекта "C:\Users\Corrector\Documents\GitHub\Test1\Test1\Test1.vcxproj" завершена (целевые объекты Build).
+
+Сборка успешно завершена.
+
+Затраченное время: 00:00:01.22
