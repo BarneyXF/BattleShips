@@ -3,12 +3,24 @@
 #include <random>
 #include <iostream> 
 #include <ctime>
+#include <conio.h>
+#include <cstdio>
+#include <cstdlib>
 
-const unsigned short numOf4Ships = 1;	unsigned short numOf4ShipsPl = 0;
-const unsigned short numOf3Ships = 2;	unsigned short numOf3ShipsPl = 0;
-const unsigned short numOf2Ships = 3;	unsigned short numOf2ShipsPl = 0;
-const unsigned short numOf1Ships = 4;	unsigned short numOf1ShipsPl = 0;
-const unsigned short totalNumOfSqares = 20;	unsigned short totalNumOfPlSqares = 0;
+const unsigned short numOf4Ships = 1;	
+const unsigned short numOf3Ships = 2;	
+const unsigned short numOf2Ships = 3;	
+const unsigned short numOf1Ships = 4;	
+const unsigned short totalNumOfSqares = 20;
+
+typedef struct
+{
+	unsigned short totalNumOfPlSqares = 0;
+	unsigned short numOf1ShipsPl = 0;
+	unsigned short numOf2ShipsPl = 0;
+	unsigned short numOf3ShipsPl = 0;
+	unsigned short numOf4ShipsPl = 0;
+}ShipsCounter;
 
 enum SeaCell
 {
@@ -31,26 +43,36 @@ typedef struct
 	ShipType type;
 } Ship;
 
-void PlacingShips(int, int);
-bool PlacingChecker(int, int);
-int ShipsDeckCounter(int x, int y, int numX, int numY);
+void PlacingShips(int, int, SeaCell (*field)[10][10], ShipsCounter(*shipsCounter));
+bool PlacingChecker(int, int, SeaCell(*field)[10][10], ShipsCounter(*shipsCounter));
+int ShipsDeckCounter(int x, int y, int numX, int numY, SeaCell(*field)[10][10]);
+void Repaint();
+bool Check(char c);
 // TODO: playing stage
-void Shooting();
+void Shooting(int x, int y);
 void ShootingChecker();
 void Print();
 
 // TODO: make local var
-SeaCell battleSea[10][10];
+SeaCell playersBattleSea[10][10];
+SeaCell (*playersField)[10][10] = &playersBattleSea;
+SeaCell enemysBattleSea[10][10];
+SeaCell(*enemysField)[10][10] = &enemysBattleSea;
+ShipsCounter playersShips, aiShips;
 Stage gameStage = menu;
 
 int main()
 {
 	for (int i = 0; i < 10; i++)
 		for (int j = 0; j < 10; j++)
-			battleSea[i][j] = empty;
+		{
+			playersBattleSea[i][j] = empty;
+			enemysBattleSea[i][j] = empty;
+		}
+			
 	gameStage = placing;
 	srand(time(0));
-	// TODO: Write asking from console or AI placing
+	// TODO: Write asking from console or AI placing, repair sticking 1 and 2-decks ships
 	do
 	{
 		if (gameStage == playing)
@@ -59,24 +81,71 @@ int main()
 		}
 		int randomX = rand() % 10 + 0;
 		int randomY = rand() % 10 + 0;
-		PlacingShips(randomX, randomY);
-	} while (totalNumOfPlSqares != totalNumOfSqares);
-	Print();
-	printf("\n%i\n%i\n%i\n%i\n\n%i", numOf1ShipsPl, numOf2ShipsPl, numOf3ShipsPl, numOf4ShipsPl, totalNumOfPlSqares);
-	char c = getc(stdin);
+		PlacingShips(randomX, randomY, playersField, &playersShips);
+
+	} while (playersShips.totalNumOfPlSqares != totalNumOfSqares);
+	do
+	{
+		int randomX = rand() % 10 + 0;
+		int randomY = rand() % 10 + 0;
+		PlacingShips(randomX, randomY, enemysField, &aiShips);
+	} while (aiShips.totalNumOfPlSqares != totalNumOfSqares);
+	//playing
+	do 
+	{
+		char xC, yC;
+		system("cls");
+		Repaint();
+		printf("%i\n%i\n%i\n%i\n%i\n", aiShips.numOf1ShipsPl, aiShips.numOf2ShipsPl, aiShips.numOf3ShipsPl, aiShips.numOf4ShipsPl, aiShips.totalNumOfPlSqares);
+		do
+		{
+			xC = _getch();
+			if (xC == 27)
+			{
+				return 0;
+			}
+		} while (!Check(xC));
+		printf("X coordinate is: %c\n", xC);
+		do
+		{
+			yC = _getch();
+			if (yC == 27)
+			{
+				return 0;
+			}
+		} while (!Check(yC));
+		printf("Y coordinate is: %c\n\n", yC);
+		int x = xC - '0';
+		int y = yC - '0';
+		Shooting(x, y);
+		printf("Shooting result is: \n");
+		printf("Press any keyboard button to continue...\n");		
+		_getch();
+	} while (true);
+
+	char c = _getch();
     return 0;
 }
 
-void PlacingShips(int x, int y)
+bool Check(char c)
 {
-	switch (battleSea[x][y])
+	if ((c >= '0') && (c <= '9'))
+	{
+		return true;
+	}
+	return false;
+}
+
+void PlacingShips(int x, int y, SeaCell (*field)[10][10], ShipsCounter (*shipsCounter))
+{
+	switch ((*field)[x][y])
 	{
 		case empty:
 		{
-			if (PlacingChecker(x, y))
+			if (PlacingChecker(x, y, field, shipsCounter))
 			{
-				battleSea[x][y] = ship;
-				totalNumOfPlSqares++;
+				(*field)[x][y] = ship;
+				(*shipsCounter).totalNumOfPlSqares++;
 			}
 			break;
 		}
@@ -91,13 +160,13 @@ void PlacingShips(int x, int y)
 			break;
 		}
 	}
-	if (totalNumOfPlSqares == totalNumOfSqares)
+	if ((*shipsCounter).totalNumOfPlSqares == totalNumOfSqares)
 	{
 		gameStage = playing;
 	}
 }
 
-bool PlacingChecker(int x, int y)
+bool PlacingChecker(int x, int y, SeaCell (*field)[10][10], ShipsCounter (*shipsCounter))
 {
 	int totalCount = 0;
 	bool canPlace = false;
@@ -108,7 +177,7 @@ bool PlacingChecker(int x, int y)
 		{
 			for (int j = 0; j <= 2; j++)
 			{
-				switch (battleSea[x - 1 + i][y - 1 + j])
+				switch ((*field)[x - 1 + i][y - 1 + j])
 				{
 				case empty:
 				case locked:
@@ -148,7 +217,7 @@ bool PlacingChecker(int x, int y)
 								numX = 1;
 							}
 						}
-						totalCount += ShipsDeckCounter(x, y, numX, numY);
+						totalCount += ShipsDeckCounter(x, y, numX, numY, field);
 						canPlace = true;
 					}
 				}
@@ -162,7 +231,7 @@ bool PlacingChecker(int x, int y)
 		{
 			for (int j = 0; j <= 1; j++)
 			{
-				switch (battleSea[i][j])
+				switch ((*field)[i][j])
 				{
 				case empty:
 				case locked:
@@ -193,7 +262,7 @@ bool PlacingChecker(int x, int y)
 								numX = 1;
 							}
 						}
-						totalCount += ShipsDeckCounter(x, y, numX, numY);
+						totalCount += ShipsDeckCounter(x, y, numX, numY, field);
 						canPlace = true;
 					}
 				}
@@ -207,7 +276,7 @@ bool PlacingChecker(int x, int y)
 		{
 			for (int j = 9; j <= 10; j++)
 			{
-				switch (battleSea[i][j])
+				switch ((*field)[i][j])
 				{
 				case empty:
 				case locked:
@@ -238,7 +307,7 @@ bool PlacingChecker(int x, int y)
 								numX = -1;
 							}
 						}
-						totalCount += ShipsDeckCounter(x, y, numX, numY);
+						totalCount += ShipsDeckCounter(x, y, numX, numY, field);
 						canPlace = true;
 					}
 				}
@@ -252,7 +321,7 @@ bool PlacingChecker(int x, int y)
 		{
 			for (int j = 0; j <= 1; j++)
 			{
-				switch (battleSea[i][j])
+				switch ((*field)[i][j])
 				{
 				case empty:
 				case locked:
@@ -283,7 +352,7 @@ bool PlacingChecker(int x, int y)
 								numX = -1;
 							}
 						}
-						totalCount += ShipsDeckCounter(x, y, numX, numY);
+						totalCount += ShipsDeckCounter(x, y, numX, numY, field);
 						canPlace = true;
 					}
 				}
@@ -298,7 +367,7 @@ bool PlacingChecker(int x, int y)
 		{
 			for (int j = 9; j <= 10; j++)
 			{
-				switch (battleSea[i][j])
+				switch ((*field)[i][j])
 				{
 				case empty:
 				case locked:
@@ -329,7 +398,7 @@ bool PlacingChecker(int x, int y)
 								numX = 1;
 							}
 						}
-						totalCount += ShipsDeckCounter(x, y, numX, numY);
+						totalCount += ShipsDeckCounter(x, y, numX, numY, field);
 						canPlace = true;
 					}
 				}
@@ -343,7 +412,7 @@ bool PlacingChecker(int x, int y)
 		{
 			for (int j = 0; j <= 1; j++)
 			{
-				switch (battleSea[x - 1 + i][y + j])
+				switch ((*field)[x - 1 + i][y + j])
 				{
 				case empty:
 				case locked:
@@ -378,7 +447,7 @@ bool PlacingChecker(int x, int y)
 								numX = 1;
 							}
 						}
-						totalCount += ShipsDeckCounter(x, y, numX, numY);
+						totalCount += ShipsDeckCounter(x, y, numX, numY, field);
 						canPlace = true;
 					}
 				}
@@ -392,7 +461,7 @@ bool PlacingChecker(int x, int y)
 		{
 			for (int j = 0; j <= 1; j++)
 			{
-				switch (battleSea[x - 1 + i][y - 1 + j])
+				switch ((*field)[x - 1 + i][y - 1 + j])
 				{
 				case empty:
 				case locked:
@@ -427,7 +496,7 @@ bool PlacingChecker(int x, int y)
 								numX = 1;
 							}
 						}
-						totalCount += ShipsDeckCounter(x, y, numX, numY);
+						totalCount += ShipsDeckCounter(x, y, numX, numY, field);
 						canPlace = true;
 					}
 				}
@@ -441,7 +510,7 @@ bool PlacingChecker(int x, int y)
 		{
 			for (int j = 0; j <= 2; j++)
 			{
-				switch (battleSea[x + i][y - 1 + j])
+				switch ((*field)[x + i][y - 1 + j])
 				{
 				case empty:
 				case locked:
@@ -476,7 +545,7 @@ bool PlacingChecker(int x, int y)
 								numX = 1;
 							}
 						}
-						totalCount += ShipsDeckCounter(x, y, numX, numY);
+						totalCount += ShipsDeckCounter(x, y, numX, numY, field);
 						canPlace = true;
 					}
 				}
@@ -490,7 +559,7 @@ bool PlacingChecker(int x, int y)
 		{
 			for (int j = 0; j <= 2; j++)
 			{
-				switch (battleSea[x - 1 + i][y - 1 + j])
+				switch ((*field)[x - 1 + i][y - 1 + j])
 				{
 					case empty:
 					case locked:
@@ -525,7 +594,7 @@ bool PlacingChecker(int x, int y)
 									numX = 1;
 								}
 							}
-							totalCount += ShipsDeckCounter(x, y, numX, numY);
+							totalCount += ShipsDeckCounter(x, y, numX, numY, field);
 							canPlace = true;
 						}
 				}
@@ -543,41 +612,41 @@ bool PlacingChecker(int x, int y)
 		{
 			case 0:
 			{
-				if (numOf1ShipsPl == numOf1Ships)
+				if ((*shipsCounter).numOf1ShipsPl == numOf1Ships)
 				{
 					return false;
 				}
-				numOf1ShipsPl++;
+				(*shipsCounter).numOf1ShipsPl++;
 				break;
 			}
 			case 1:
 			{
-				if (numOf2ShipsPl == numOf2Ships)
+				if ((*shipsCounter).numOf2ShipsPl == numOf2Ships)
 				{
 					return false;
 				}
-				numOf1ShipsPl--;
-				numOf2ShipsPl++;
+				(*shipsCounter).numOf1ShipsPl--;
+				(*shipsCounter).numOf2ShipsPl++;
 				break;
 			}
 			case 2:
 			{
-				if (numOf3ShipsPl == numOf3Ships)
+				if ((*shipsCounter).numOf3ShipsPl == numOf3Ships)
 				{
 					return false;
 				}
-				numOf2ShipsPl--;
-				numOf3ShipsPl++;
+				(*shipsCounter).numOf2ShipsPl--;
+				(*shipsCounter).numOf3ShipsPl++;
 				break;
 			}
 			case 3:
 			{
-				if (numOf4ShipsPl == numOf4Ships)
+				if ((*shipsCounter).numOf4ShipsPl == numOf4Ships)
 				{
 					return false;
 				}
-				numOf3ShipsPl--;
-				numOf4ShipsPl++;
+				(*shipsCounter).numOf3ShipsPl--;
+				(*shipsCounter).numOf4ShipsPl++;
 				break;
 			}
 			default:
@@ -589,14 +658,14 @@ bool PlacingChecker(int x, int y)
 	}
 }
 
-int ShipsDeckCounter(int x, int y, int numX, int numY)
+int ShipsDeckCounter(int x, int y, int numX, int numY, SeaCell(*field)[10][10])
 {
 	int counter = 0;
 	for (int i = 1; i <= abs(numX * 4) + 1; i++)
 	{
 		for (int j = 1; j <= abs(numY * 4) + 1; j++)
 		{
-			switch (battleSea[x + i * numX][y + j * numY])
+			switch ((*field)[x + i * numX][y + j * numY])
 			{
 			case ship:
 			{
@@ -616,13 +685,13 @@ int ShipsDeckCounter(int x, int y, int numX, int numY)
 
 void Print()
 {
-	printf(" \tABCDEFGHIG\n");
+	printf(" \tABCDEFGHIG\t \tABCDEFGHIG\n");
 	for (int j = 0; j < 10; j++)
 	{
-		printf("%i\t", j + 1);
+		printf("%i\t", j);
 		for (int i = 0; i < 10; i++)
 		{
-			switch (battleSea[i][j])
+			switch (playersBattleSea[i][j])
 			{
 				case empty:
 				{
@@ -641,11 +710,41 @@ void Print()
 				}	
 			}		
 		}
+		printf("\t%i\t", j);
+		for (int i = 0; i < 10; i++)
+		{
+			switch (enemysBattleSea[i][j])
+			{
+			case empty:
+			{
+				printf(".");
+				break;
+			}
+			case ship:
+			{
+				printf("s");
+				break;
+			}
+			case locked:
+			{
+				printf("X");
+				break;
+			}
+			}
+		}
 		printf("\n");
 	}
 }
 
-void Shooting()
+void Repaint()
+{
+	printf("BattleShips: Player vs AI(ip: localhost)\n\n");
+	printf("\tYour's field \t\tEnemy's field\n\n");
+	Print();
+	printf("\nCurrent actions:\n\nPress \"esc\" to exit or enter x coordinate\n");
+}
+
+void Shooting(int x, int y)
 {
 
 }
