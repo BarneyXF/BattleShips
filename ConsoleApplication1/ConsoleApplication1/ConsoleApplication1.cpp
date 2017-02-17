@@ -13,14 +13,10 @@ const unsigned short numOf2Ships = 3;
 const unsigned short numOf1Ships = 4;	
 const unsigned short totalNumOfSqares = 20;
 
-typedef struct
+enum ShipType
 {
-	unsigned short totalNumOfPlSqares = 0;
-	unsigned short numOf1ShipsPl = 0;
-	unsigned short numOf2ShipsPl = 0;
-	unsigned short numOf3ShipsPl = 0;
-	unsigned short numOf4ShipsPl = 0;
-}ShipsCounter;
+	null = 0, patrol = 1, destroyer = 2, cruiser = 3, carrier = 4
+};
 
 enum SeaCell
 {
@@ -32,20 +28,40 @@ enum Stage
 	menu = 0, placing = 1, playing = 2, end = 3
 };
 
-enum ShipType
+typedef struct
 {
-	patrol = 1, destroyer = 2, cruiser = 3, carrier = 4
-};
+	unsigned short totalNumOfPlSqares = 0;
+	unsigned short numOf1ShipsPl = 0;
+	unsigned short numOf2ShipsPl = 0;
+	unsigned short numOf3ShipsPl = 0;
+	unsigned short numOf4ShipsPl = 0;
+}PlayersShipsCounter;
 
 typedef struct
 {
-	int numOfDecks = 0;
-	ShipType type;
+	SeaCell cells[4];
+	int x[4];
+	int y[4];
+}ShipCell;
+
+typedef struct
+{
+	ShipType type = null;
+	ShipCell cell;
 } Ship;
 
-void PlacingShips(int, int, SeaCell (*field)[10][10], ShipsCounter(*shipsCounter));
-bool PlacingChecker(int, int, SeaCell(*field)[10][10], ShipsCounter(*shipsCounter));
-int ShipsDeckCounter(int x, int y, int numX, int numY, SeaCell(*field)[10][10]);
+typedef struct
+{
+	PlayersShipsCounter count;
+	Ship ship;
+}Player;
+
+
+void PlacingShips(SeaCell(*field)[12][12], SeaCell(*enemysfield)[12][12], Player player, Player ai);
+bool PlacingCheck(int x, int y, SeaCell(*field)[12][12], Player(*player), int numOfDecks, int xP, int yP);
+void PlacingShips(int, int, SeaCell (*field)[12][12], PlayersShipsCounter(*shipsCounter));//
+//bool PlacingChecker(int, int, SeaCell(*field)[12][12], PlayersShipsCounter(*shipsCounter));//
+//int ShipsDeckCounter(int x, int y, int numX, int numY, SeaCell(*field)[12][12]);
 void Repaint();
 bool Check(char c);
 // TODO: playing stage
@@ -54,74 +70,25 @@ void ShootingChecker();
 void Print();
 
 // TODO: make local var
-SeaCell playersBattleSea[10][10];
-SeaCell (*playersField)[10][10] = &playersBattleSea;
-SeaCell enemysBattleSea[10][10];
-SeaCell(*enemysField)[10][10] = &enemysBattleSea;
-ShipsCounter playersShips, aiShips;
+SeaCell playersBattleSea[12][12];
+SeaCell (*playersField)[12][12] = &playersBattleSea;
+SeaCell enemysBattleSea[12][12];
+SeaCell(*enemysField)[12][12] = &enemysBattleSea;
 Stage gameStage = menu;
 
+Player player, ai;
+
 int main()
-{
-	for (int i = 0; i < 10; i++)
-		for (int j = 0; j < 10; j++)
-		{
-			playersBattleSea[i][j] = empty;
-			enemysBattleSea[i][j] = empty;
-		}
-			
+{			
 	gameStage = placing;
 	srand(time(0));
 	// TODO: Write asking from console or AI placing, repair sticking 1 and 2-decks ships
-	do
-	{
-		if (gameStage == playing)
-		{
-			break;
-		}
-		int randomX = rand() % 10 + 0;
-		int randomY = rand() % 10 + 0;
-		PlacingShips(randomX, randomY, playersField, &playersShips);
 
-	} while (playersShips.totalNumOfPlSqares != totalNumOfSqares);
-	do
-	{
-		int randomX = rand() % 10 + 0;
-		int randomY = rand() % 10 + 0;
-		PlacingShips(randomX, randomY, enemysField, &aiShips);
-	} while (aiShips.totalNumOfPlSqares != totalNumOfSqares);
-	//playing
-	do 
-	{
-		char xC, yC;
-		system("cls");
-		Repaint();
-		printf("%i\n%i\n%i\n%i\n%i\n", aiShips.numOf1ShipsPl, aiShips.numOf2ShipsPl, aiShips.numOf3ShipsPl, aiShips.numOf4ShipsPl, aiShips.totalNumOfPlSqares);
-		do
-		{
-			xC = _getch();
-			if (xC == 27)
-			{
-				return 0;
-			}
-		} while (!Check(xC));
-		printf("X coordinate is: %c\n", xC);
-		do
-		{
-			yC = _getch();
-			if (yC == 27)
-			{
-				return 0;
-			}
-		} while (!Check(yC));
-		printf("Y coordinate is: %c\n\n", yC);
-		int x = xC - '0';
-		int y = yC - '0';
-		Shooting(x, y);
-		printf("Shooting result is: \n");
-		printf("Press any keyboard button to continue...\n");		
-		_getch();
-	} while (true);
+	PlacingShips(playersField, enemysField, player, ai);
+	//Shooting(x, y);
+	printf("Shooting result is: \n");
+	printf("Press any keyboard button to continue...\n");		
+	_getch();
 
 	char c = _getch();
     return 0;
@@ -136,535 +103,268 @@ bool Check(char c)
 	return false;
 }
 
-void PlacingShips(int x, int y, SeaCell (*field)[10][10], ShipsCounter (*shipsCounter))
+void PlacingShips(SeaCell(*field)[12][12], SeaCell(*enemysfield)[12][12], Player player, Player ai)
 {
-	switch ((*field)[x][y])
+	int numOfPlace = 4;
+	for (int i = 1; i <= 4; i++)
 	{
-		case empty:
+		numOfPlace--;
+		for (int j = numOfPlace; j >= 0; j--)
 		{
-			if (PlacingChecker(x, y, field, shipsCounter))
+			start:
+			char xC, yC;
+			system("cls");
+			Print();
+			printf("Enter x coordinate for %i - deck's ship\n", i);
+			do
 			{
-				(*field)[x][y] = ship;
-				(*shipsCounter).totalNumOfPlSqares++;
+				xC = _getch();
+				if (xC == 27)
+				{
+					return;
+				}
+			} while (!Check(xC));
+			printf("X coordinate is: %c\n\nEnter y coordinate\n", xC);
+			do
+			{
+				yC = _getch();
+				if (yC == 27)
+				{
+					return;
+				}
+			} while (!Check(yC));
+			printf("Y coordinate is: %c\n\n %i - deck's ships num is: %i", yC, i, j);
+			int x = xC - '0';
+			int y = yC - '0';
+			printf("\nChoose horizontal(0) or vertical(1) mode:\n");
+			char c;
+			do
+			{
+				c = _getch();
+				if (c == 27)
+				{
+					return;
+				}
+			} while (!Check(c));
+			int choose = c - '0';
+
+			switch (choose)
+			{
+				case 0:
+				{
+					if (PlacingCheck(x, y, field, &player, i, 1, 0))
+					{
+						for (int k = 0; k < i; k++)
+						{
+							(*field)[x + k][y] = ship;
+							player.ship.cell.x[k] = x + k;
+							player.ship.cell.y[k] = y + k;
+							player.ship.type = (ShipType)j;
+						}
+						
+					}
+					else
+					{
+						goto start;
+					}
+					break;
+				}
+				case 1:
+				{
+					if(PlacingCheck(x, y, field, &player, i, 0, 1))
+					{
+						for (int k = 0; k < i; k++)
+						{
+							(*field)[x][y + k] = ship;
+							player.ship.cell.x[k] = x + k;
+							player.ship.cell.y[k] = y + k;
+						}
+
+					}
+					else
+					{
+						goto start;
+					}
+					break;
+				}
+				default:
+				{
+					if (PlacingCheck(x, y, field, &player, i, 0, 1))
+					{
+						for (int k = 0; k < i; k++)
+						{
+							(*field)[x][y + k] = ship;
+							player.ship.cell.x[k] = x + k;
+							player.ship.cell.y[k] = y + k;
+						}
+
+					}
+					else
+					{
+						goto start;
+					}
+					break;
+				}
 			}
-			break;
+			start1:
+			srand(time(0));
+			int randomX = rand() % 10 + 0;
+			int randomY = rand() % 10 + 0;
+			int r = rand() % 1 + 0;
+			
+			switch (r)
+			{
+				case 0:
+				{
+					if (PlacingCheck(randomX, randomY, enemysField, &ai, i, 1, 0))
+					{
+						for (int k = 0; k < i; k++)
+						{
+							(*enemysField)[randomX + k][randomY] = ship;
+							ai.ship.cell.x[k] = randomX + k;
+							ai.ship.cell.y[k] = randomY + k;
+							ai.ship.type = (ShipType)j;
+						}
+
+					}
+					else
+					{
+						goto start1;
+					}
+					break;
+				}
+				case 1:
+				{
+					if (PlacingCheck(randomX, randomY, enemysField, &ai, i, 0, 1))
+					{
+						for (int k = 0; k < i; k++)
+						{
+							(*enemysField)[randomX + k][randomY] = ship;
+							ai.ship.cell.x[k] = randomX + k;
+							ai.ship.cell.y[k] = randomY + k;
+							ai.ship.type = (ShipType)j;
+						}
+
+					}
+					else
+					{
+						goto start1;
+					}
+					break;
+				}
+				default:
+				{
+					if (PlacingCheck(randomX, randomY, enemysField, &ai, i, 0, 1))
+					{
+						for (int k = 0; k < i; k++)
+						{
+							(*enemysField)[randomX + k][randomY] = ship;
+							ai.ship.cell.x[k] = randomX + k;
+							ai.ship.cell.y[k] = randomY + k;
+							ai.ship.type = (ShipType)j;
+						}
+
+					}
+					else
+					{
+						goto start1;
+					}
+					break;
+				}
+			}
 		}
-		case ship:
-		{
-			// TODO: Error message
-			break;
-		}
-		case locked:
-		{
-			// TODO: Error message
-			break;
-		}
-	}
-	if ((*shipsCounter).totalNumOfPlSqares == totalNumOfSqares)
-	{
-		gameStage = playing;
 	}
 }
 
-bool PlacingChecker(int x, int y, SeaCell (*field)[10][10], ShipsCounter (*shipsCounter))
+bool PlacingCheck(int x, int y, SeaCell(*field)[12][12], Player (*player), int numOfDecks, int xP, int yP)
 {
 	int totalCount = 0;
 	bool canPlace = false;
-
-	if ((x > 0) && (y > 0) && (x < 10) && (y < 10))
+	for (int k = 0; k < numOfDecks; k++)
 	{
-		for (int i = 0; i <= 2; i++)
+		if (((*field)[x + k * xP][y + k * yP] == ship) || ((*field)[x + k * xP][y + k * yP] == locked))
 		{
-			for (int j = 0; j <= 2; j++)
+			return false;
+		}
+		else
+		{
+			if ((x + k * xP > 9) || (y + k * yP > 9))
 			{
-				switch ((*field)[x - 1 + i][y - 1 + j])
+				return false;
+			}
+			for (int i = 0; i < 3; i++)
+			{
+				for (int j = 0; j < 3; j++)
 				{
-				case empty:
-				case locked:
-				{
-					canPlace = true;
-					break;
-				}
-				case ship:
-				{
-					if ((i == j) || (abs(i - j) == 2))
+					switch ((*field)[x - 1 + j + k * xP][y - 1 + i + k * yP])
 					{
-						// TODO: Error message
-						return false;
-					}
-					else
-					{
-						int numX, numY;
-						if ((i == 1) && (j > 1))
+						case locked:
+						case empty:
 						{
-							numX = 0;
-							numY = 1;
+							canPlace = true;
+							break;
 						}
-						else if ((i == 1) && (j < 1))
+						case ship:
 						{
-							numX = 0;
-							numY = -1;
-						}
-						else
-						{
-							numY = 0;
-							if (i < 1)
+							if ((i == j) || (abs(i - j) == 2))
 							{
-								numX = -1;
+								// TODO: Error message
+								return false;
 							}
 							else
 							{
-								numX = 1;
-							}
-						}
-						totalCount += ShipsDeckCounter(x, y, numX, numY, field);
-						canPlace = true;
-					}
-				}
-				}
-			}
-		}
-	}
-	else if ((x == 0) && (y == 0))
-	{
-		for (int i = 0; i <= 1; i++)
-		{
-			for (int j = 0; j <= 1; j++)
-			{
-				switch ((*field)[i][j])
-				{
-				case empty:
-				case locked:
-				{
-					canPlace = true;
-					break;
-				}
-				case ship:
-				{
-					if (i == j)
-					{
-						// TODO: Error message
-						return false;
-					}
-					else
-					{
-						int numX, numY;
-						if ((i == 0) && (j > 0))
-						{
-							numX = 0;
-							numY = 1;
-						}
-						else
-						{
-							numY = 0;
-							if (i > 0)
-							{
-								numX = 1;
-							}
-						}
-						totalCount += ShipsDeckCounter(x, y, numX, numY, field);
-						canPlace = true;
-					}
-				}
-				}
-			}
-		}
-	}
-	else if ((x == 10) && (y == 10))
-	{
-		for (int i = 9; i <= 10; i++)
-		{
-			for (int j = 9; j <= 10; j++)
-			{
-				switch ((*field)[i][j])
-				{
-				case empty:
-				case locked:
-				{
-					canPlace = true;
-					break;
-				}
-				case ship:
-				{
-					if (i == j)
-					{
-						// TODO: Error message
-						return false;
-					}
-					else
-					{
-						int numX, numY;
-						if ((i == 10) && (j < 10))
-						{
-							numX = 0;
-							numY = -1;
-						}
-						else
-						{
-							numY = 0;
-							if (i < 10)
-							{
-								numX = -1;
-							}
-						}
-						totalCount += ShipsDeckCounter(x, y, numX, numY, field);
-						canPlace = true;
-					}
-				}
-				}
-			}
-		}
-	}//
-	else if ((x == 10) && (y == 0))
-	{
-		for (int i = 9; i <= 10; i++)
-		{
-			for (int j = 0; j <= 1; j++)
-			{
-				switch ((*field)[i][j])
-				{
-				case empty:
-				case locked:
-				{
-					canPlace = true;
-					break;
-				}
-				case ship:
-				{
-					if (abs(i - j) == 7)
-					{
-						// TODO: Error message
-						return false;
-					}
-					else
-					{
-						int numX, numY;
-						if ((i == 10) && (j > 1))
-						{
-							numX = 0;
-							numY = 1;
-						}
-						else
-						{
-							numY = 0;
-							if (i < 10)
-							{
-								numX = -1;
-							}
-						}
-						totalCount += ShipsDeckCounter(x, y, numX, numY, field);
-						canPlace = true;
-					}
-				}
-				}
-			}
-		}
-
-	}//
-	else if ((x == 0) && (y == 10))
-	{
-		for (int i = 0; i <= 1; i++)
-		{
-			for (int j = 9; j <= 10; j++)
-			{
-				switch ((*field)[i][j])
-				{
-				case empty:
-				case locked:
-				{
-					canPlace = true;
-					break;
-				}
-				case ship:
-				{
-					if (abs(i - j) == 7)
-					{
-						// TODO: Error message
-						return false;
-					}
-					else
-					{
-						int numX, numY;
-						if ((i == 0) && (j < 10))
-						{
-							numX = 0;
-							numY = -1;
-						}
-						else
-						{
-							numY = 0;
-							if (i > 0)
-							{
-								numX = 1;
-							}
-						}
-						totalCount += ShipsDeckCounter(x, y, numX, numY, field);
-						canPlace = true;
-					}
-				}
-				}
-			}
-		}
-	}//
-	else if ((x > 0) && (y == 0) && (x < 10))
-	{
-		for (int i = 0; i <= 2; i++)
-		{
-			for (int j = 0; j <= 1; j++)
-			{
-				switch ((*field)[x - 1 + i][y + j])
-				{
-				case empty:
-				case locked:
-				{
-					canPlace = true;
-					break;
-				}
-				case ship:
-				{
-					if (abs(i - j) == 1)
-					{
-						// TODO: Error message
-						return false;
-					}
-					else
-					{
-						int numX, numY;
-						if ((i == 1) && (j > 0))
-						{
-							numX = 0;
-							numY = 1;
-						}
-						else
-						{
-							numY = 0;
-							if (i < 1)
-							{
-								numX = -1;
-							}
-							else
-							{
-								numX = 1;
-							}
-						}
-						totalCount += ShipsDeckCounter(x, y, numX, numY, field);
-						canPlace = true;
-					}
-				}
-				}
-			}
-		}
-	}
-	else if ((x > 0) && (y == 10) && (x < 10))
-	{
-		for (int i = 0; i <= 2; i++)
-		{
-			for (int j = 0; j <= 1; j++)
-			{
-				switch ((*field)[x - 1 + i][y - 1 + j])
-				{
-				case empty:
-				case locked:
-				{
-					canPlace = true;
-					break;
-				}
-				case ship:
-				{
-					if (abs(i - j) == 1)
-					{
-						// TODO: Error message
-						return false;
-					}
-					else
-					{
-						int numX, numY;
-						if ((i == 1) && (j > 0))
-						{
-							numX = 0;
-							numY = -1;
-						}
-						else
-						{
-							numY = 0;
-							if (i < 1)
-							{
-								numX = -1;
-							}
-							else
-							{
-								numX = 1;
-							}
-						}
-						totalCount += ShipsDeckCounter(x, y, numX, numY, field);
-						canPlace = true;
-					}
-				}
-				}
-			}
-		}
-	}
-	else if ((y > 0) && (x == 0) && (y < 10))
-	{
-		for (int i = 0; i <= 1; i++)
-		{
-			for (int j = 0; j <= 2; j++)
-			{
-				switch ((*field)[x + i][y - 1 + j])
-				{
-				case empty:
-				case locked:
-				{
-					canPlace = true;
-					break;
-				}
-				case ship:
-				{
-					if (abs(i - j) == 1)
-					{
-						// TODO: Error message
-						return false;
-					}
-					else
-					{
-						int numX, numY;
-						if ((j == 1) && (i > 0))
-						{
-							numX = 0;
-							numY = 1;
-						}
-						else
-						{
-							numY = 0;
-							if (j < 1)
-							{
-								numX = -1;
-							}
-							else
-							{
-								numX = 1;
-							}
-						}
-						totalCount += ShipsDeckCounter(x, y, numX, numY, field);
-						canPlace = true;
-					}
-				}
-				}
-			}
-		}
-	}
-	else if ((y > 0) && (x == 10) && (y < 10))
-	{
-		for (int i = 0; i <= 1; i++)
-		{
-			for (int j = 0; j <= 2; j++)
-			{
-				switch ((*field)[x - 1 + i][y - 1 + j])
-				{
-					case empty:
-					case locked:
-					{
-						canPlace = true;
-						break;
-					}
-					case ship:
-					{
-						if (abs(i - j) == 2)
-						{
-							// TODO: Error message
-							return false;
-						}
-						else
-						{
-							int numX, numY;
-							if ((j == 1) && (i > 0))
-							{
-								numX = 0;
-								numY = -1;
-							}
-							else
-							{
-								numY = 0;
-								if (j < 1)
+								int numX, numY;
+								if ((i == 1) && (j > 1))
 								{
-									numX = -1;
+									numX = 0;
+									numY = 1;
+								}
+								else if ((i == 1) && (j < 1))
+								{
+									numX = 0;
+									numY = -1;
 								}
 								else
 								{
-									numX = 1;
+									numY = 0;
+									if (i < 1)
+									{
+										numX = -1;
+									}
+									else
+									{
+										numX = 1;
+									}
 								}
+								canPlace = true;
 							}
-							totalCount += ShipsDeckCounter(x, y, numX, numY, field);
-							canPlace = true;
 						}
-				}
+					}
 				}
 			}
 		}
 	}
-	if ((totalCount > 3) || (!canPlace))
+	if (!canPlace)
 	{
 		return false;
 	}
 	else
 	{
-		switch (totalCount)
-		{
-			case 0:
-			{
-				if ((*shipsCounter).numOf1ShipsPl == numOf1Ships)
-				{
-					return false;
-				}
-				(*shipsCounter).numOf1ShipsPl++;
-				break;
-			}
-			case 1:
-			{
-				if ((*shipsCounter).numOf2ShipsPl == numOf2Ships)
-				{
-					return false;
-				}
-				(*shipsCounter).numOf1ShipsPl--;
-				(*shipsCounter).numOf2ShipsPl++;
-				break;
-			}
-			case 2:
-			{
-				if ((*shipsCounter).numOf3ShipsPl == numOf3Ships)
-				{
-					return false;
-				}
-				(*shipsCounter).numOf2ShipsPl--;
-				(*shipsCounter).numOf3ShipsPl++;
-				break;
-			}
-			case 3:
-			{
-				if ((*shipsCounter).numOf4ShipsPl == numOf4Ships)
-				{
-					return false;
-				}
-				(*shipsCounter).numOf3ShipsPl--;
-				(*shipsCounter).numOf4ShipsPl++;
-				break;
-			}
-			default:
-			{
-				return false;
-			}
-		}
 		return true;
 	}
 }
 
-int ShipsDeckCounter(int x, int y, int numX, int numY, SeaCell(*field)[10][10])
+int ShipsDeckCounter(int x, int y, int numX, int numY, SeaCell(*field)[12][12], int numOfDecks)
 {
 	int counter = 0;
-	for (int i = 1; i <= abs(numX * 4) + 1; i++)
+	for (int i = 1; i <= abs(numX * numOfDecks) + 1; i++)
 	{
-		for (int j = 1; j <= abs(numY * 4) + 1; j++)
+		for (int j = 1; j <= abs(numY * numOfDecks) + 1; j++)
 		{
+			if ((x + i * numX > 10) || (y + j * numY > 10))
+			{
+				return -1;
+			}
 			switch ((*field)[x + i * numX][y + j * numY])
 			{
 			case ship:
