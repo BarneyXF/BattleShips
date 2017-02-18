@@ -94,6 +94,7 @@ int main()
     return 0;
 }
 
+// Remake it to be universal, so it gets 'c' and 2 boundaries.
 bool Check(char c)
 {
 	if ((c >= '0') && (c <= '9'))
@@ -103,6 +104,7 @@ bool Check(char c)
 	return false;
 }
 
+// Too big of a function. Should be breaked in smaller pieces, commented and refactored.
 void PlacingShips(SeaCell(*field)[12][12], SeaCell(*enemysfield)[12][12], Player player, Player ai)
 {
 	int numOfPlace = 4;
@@ -119,6 +121,7 @@ void PlacingShips(SeaCell(*field)[12][12], SeaCell(*enemysfield)[12][12], Player
 			do
 			{
 				xC = _getch();
+				// 27 = ESC button
 				if (xC == 27)
 				{
 					return;
@@ -128,6 +131,7 @@ void PlacingShips(SeaCell(*field)[12][12], SeaCell(*enemysfield)[12][12], Player
 			do
 			{
 				yC = _getch();
+				// 27 = ESC button
 				if (yC == 27)
 				{
 					return;
@@ -145,9 +149,10 @@ void PlacingShips(SeaCell(*field)[12][12], SeaCell(*enemysfield)[12][12], Player
 				{
 					return;
 				}
-			} while (!Check(c));
+			} while (!Check(c));	// Invalid check. Should be checking [0, 1], but checks [0, 9]
 			int choose = c - '0';
 
+			// Just change Check(c) function, do not create 'default'.
 			switch (choose)
 			{
 				case 0:
@@ -165,6 +170,8 @@ void PlacingShips(SeaCell(*field)[12][12], SeaCell(*enemysfield)[12][12], Player
 					}
 					else
 					{
+						// Atata, don't use it. Also, it is better to swap
+						// if and else content.
 						goto start;
 					}
 					break;
@@ -183,6 +190,8 @@ void PlacingShips(SeaCell(*field)[12][12], SeaCell(*enemysfield)[12][12], Player
 					}
 					else
 					{
+						// Atata, don't use it. Also, it is better to swap
+						// if and else content.
 						goto start;
 					}
 					break;
@@ -201,6 +210,8 @@ void PlacingShips(SeaCell(*field)[12][12], SeaCell(*enemysfield)[12][12], Player
 					}
 					else
 					{
+						// Atata, don't use it. Also, it is better to swap
+						// if and else content.
 						goto start;
 					}
 					break;
@@ -210,8 +221,13 @@ void PlacingShips(SeaCell(*field)[12][12], SeaCell(*enemysfield)[12][12], Player
 			srand(time(0));
 			int randomX = rand() % 10 + 0;
 			int randomY = rand() % 10 + 0;
+			// Well, randoming in [0, 0] + 0 range is strange (no rhyme intended).
 			int r = rand() % 1 + 0;
 			
+
+			// All 'for' cycles are the same. Make separate function for it.
+			// There is no need for default. There is no need for 'switch' 
+			// at all. You can predict anything for ai. 
 			switch (r)
 			{
 				case 0:
@@ -229,6 +245,8 @@ void PlacingShips(SeaCell(*field)[12][12], SeaCell(*enemysfield)[12][12], Player
 					}
 					else
 					{
+						// Atata, don't use it. Also, it is better to swap
+						// if and else content.
 						goto start1;
 					}
 					break;
@@ -276,6 +294,7 @@ void PlacingShips(SeaCell(*field)[12][12], SeaCell(*enemysfield)[12][12], Player
 	}
 }
 
+// This masterpiece should be refactored :/
 bool PlacingCheck(int x, int y, SeaCell(*field)[12][12], Player (*player), int numOfDecks, int xP, int yP)
 {
 	int totalCount = 0;
@@ -383,6 +402,9 @@ int ShipsDeckCounter(int x, int y, int numX, int numY, SeaCell(*field)[12][12], 
 	return counter;
 }
 
+// Can be remade as one function, that takes field as argument,
+// so you don't need to make 2 'for' cycles to fill each field. 
+// You will just call function twice.
 void Print()
 {
 	printf(" \tABCDEFGHIG\t \tABCDEFGHIG\n");
