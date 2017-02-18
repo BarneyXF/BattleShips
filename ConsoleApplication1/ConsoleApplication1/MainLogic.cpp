@@ -6,7 +6,9 @@
 #include <conio.h>
 #include <cstdio>
 #include <cstdlib>
+
 #include "MainLogic.h"
+#include "AI.h"
 
 int main()
 {	
@@ -60,11 +62,10 @@ void PlacingShips(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11], Player
 		numOfShipsOfType--;
 		for (int j = numOfShipsOfType; j >= 0; j--)
 		{
-		start:
 			char charX, charY;
-			system("cls");
-			Repaint(field, enemysfield);
-			printf("Enter x coordinate for %i - deck's ship\n", numOfDecks);
+			//system("cls");
+			//Repaint(field, enemysfield);
+			/*printf("Enter x coordinate for %i - deck's ship\n", numOfDecks);
 			do
 			{
 				charX = _getch();
@@ -100,9 +101,14 @@ void PlacingShips(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11], Player
 			} while (!Check(charAlign) || (charAlign > '1'));
 
 			printf("Checking position, please wait\n");
-			int choose = charAlign - '0';
+			int choose = charAlign - '0';*/
 
-			switch (choose)
+			srand(time(0));
+			int x = rand() % 10 + 0;
+			int y = rand() % 10 + 0;
+			int r = rand() % 2 + 0;
+
+			switch (r) //switch (choose)
 			{
 				case 0:
 				{
@@ -112,7 +118,8 @@ void PlacingShips(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11], Player
 					}
 					else
 					{
-						goto start;
+						j++;
+						continue;
 					}
 					break;
 				}
@@ -351,13 +358,13 @@ void Repaint(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11])
 	printf("\nCurrent actions:\n\nPress \"esc\" to exit or \n");
 }
 //стадия игры
-bool Playing(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11], Player(*playersPointer), Player(*aisPointer))
+bool Playing(SeaCell(*playerField)[11][11], SeaCell(*enemyField)[11][11], Player(*playersPointer), Player(*aisPointer))
 {
 	do 
 	{
 		char charX, charY;
 		system("cls");
-		Repaint(field, enemyField);
+		Repaint(playerField, enemyField);
 		printf("Enter x coordinate for shoot\n");
 		do
 		{
@@ -400,44 +407,22 @@ bool Playing(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11], Player(*play
 			}
 			
 		}
+
+		// AI's turn
 		if ((*aisPointer).count.totalNumOfPlSqares > 0)
 		{
+			;
 			//BOTS TURN(PLACE YOUR CODE HERE)
-			srand(time(0));
-			int x;
-			int y;
-			// TODO: check if 1-4 step behind we wonded the ship
-			do
-			{
-				x = rand() % 10 + 0;
-				y = rand() % 10 + 0;
-			} while (((*field)[x + 10][y] == marked) || (((*field)[x + 10][y] == killed)));
-
-			result = ShootingChecker(&x, &y, field, playersPointer);
-
-			switch (result)
-			{
-				case miss:
-				case marked:
-				{
-					(*field)[x][y] = marked;
-					break;
-				}
-				case wounded:
-				case killed:
-				{
-					(*field)[x][y] = kill;
-					(*playersPointer).count.totalNumOfPlSqares--;
-					break;
-				}
-			}
+			turnOfAI(playerField, playersPointer);
 			//END OF THE BOTS TURN
 		}
 		else
 		{
 			return true;
 		}
-	}while ((*playersPointer).count.totalNumOfPlSqares > 0);
+	}
+	while ((*playersPointer).count.totalNumOfPlSqares > 0);
+	
 	return false;
 }
 //проверка попадания
