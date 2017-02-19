@@ -413,7 +413,7 @@ bool Playing(SeaCell(*playerField)[11][11], SeaCell(*enemyField)[11][11], Player
 		{
 			;
 			//BOTS TURN(PLACE YOUR CODE HERE)
-			turnOfAI(playerField, playersPointer);
+			TurnOfAI(playerField, playersPointer);
 			//END OF THE BOTS TURN
 		}
 		else

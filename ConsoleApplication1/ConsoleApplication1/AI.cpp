@@ -5,7 +5,7 @@
 #include "MainLogic.h"
 #include "AI.h"
 
-void turnOfAI(SeaCell (*playerField)[11][11], Player(*playersPointer))
+void TurnOfAI(SeaCell (*playerField)[11][11], Player(*playersPointer))
 {
 	srand(time(0));
 	ShotResult result;
@@ -16,31 +16,30 @@ void turnOfAI(SeaCell (*playerField)[11][11], Player(*playersPointer))
 	// Doing shots until miss
 	do
 	{
-		chooseSquare(&x, &y, playerField);
+		ChooseSquare(&x, &y, playerField);
 		//TODO: ShootingChecker doesn't work right.
 		result = ShootingChecker(&x, &y, playerField, playersPointer);
-		extraAction = continueAction(x, y, result, playerField, playersPointer);
+		extraAction = ContinueAction(x, y, result, playerField, playersPointer);
 	} 
 	while (extraAction);
 }
 
 // Choosing square to shoot.
-void chooseSquare(int (*x), int (*y), SeaCell(*playerField)[11][11])
+void ChooseSquare(int (*x), int (*y), SeaCell(*playerField)[11][11])
 {
 	SeaCell square;
-	int l = *x;
+
 	do
 	{
 		*x = rand() % 10;
 		*y = rand() % 10;
-		l = *x;
 		square = (*playerField)[*x][*y];
 	} 
 	while ((square == marked) || (square == kill));
 }
 
 // Making actions after getting info about result.
-bool continueAction(int x, int y, ShotResult result, SeaCell(*playerField)[11][11], Player(*playersPointer))
+bool ContinueAction(int x, int y, ShotResult result, SeaCell(*playerField)[11][11], Player(*playersPointer))
 {
 	switch (result)
 	{
