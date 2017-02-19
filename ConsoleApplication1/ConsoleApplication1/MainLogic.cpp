@@ -19,6 +19,14 @@ int main()
 	SeaCell(*enemysField)[11][11] = &enemysBattleSea;
 	Stage gameStage = menu;
 
+	// Modified player's field. It helps AI to shoot more efficiently.
+	// It puts 'marked' on fields near killed decks, so AI won't shoot on them. 
+	SeaCell specialPlayersFieldForAI[11][11];
+
+	// Used by AI. True, if enemy's ship was wounded and 
+	// next target square should be specially chosen.
+	bool specialTactic = false;
+
 	//создание и инициализация игроков и ссылок
 	Player player, ai;
 	Player(*playersPointer) = &player;
@@ -31,13 +39,14 @@ int main()
 			playersBattleSea[i][j] = empty;
 			enemysBattleSea[i][j] = empty;
 		}
+
 	//размещаем корабли
 	PlacingShips(playersField, enemysField, playersPointer, aisPointer);
 	gameStage = playing;
 	player.count.totalNumOfPlSqares = 20;
 	ai.count.totalNumOfPlSqares = 20;
 	//играем
-	if (Playing(playersField, enemysField, playersPointer, aisPointer))
+	if (Playing(playersField, enemysField, playersPointer, aisPointer, &specialPlayersFieldForAI, &specialTactic))
 	{
 		system("cls");
 		printf("You win!\n");
@@ -358,7 +367,8 @@ void Repaint(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11])
 	printf("\nCurrent actions:\n\nPress \"esc\" to exit or \n");
 }
 //стадия игры
-bool Playing(SeaCell(*playerField)[11][11], SeaCell(*enemyField)[11][11], Player(*playersPointer), Player(*aisPointer))
+bool Playing(SeaCell(*playerField)[11][11], SeaCell(*enemyField)[11][11], Player(*playersPointer), 
+			 Player(*aisPointer), SeaCell(*specialPlayersFieldForAI)[11][11], bool *specialTactic)
 {
 	do 
 	{
@@ -411,9 +421,8 @@ bool Playing(SeaCell(*playerField)[11][11], SeaCell(*enemyField)[11][11], Player
 		// AI's turn
 		if ((*aisPointer).count.totalNumOfPlSqares > 0)
 		{
-			;
 			//BOTS TURN(PLACE YOUR CODE HERE)
-			TurnOfAI(playerField, playersPointer);
+			TurnOfAI(playerField, specialPlayersFieldForAI, playersPointer, specialTactic);
 			//END OF THE BOTS TURN
 		}
 		else

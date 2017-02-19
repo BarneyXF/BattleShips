@@ -14,7 +14,7 @@ enum ShipType
 // состояние клетки
 enum SeaCell
 {
-	empty = 0, ship = 1, kill = 2, marked = 3
+	empty, ship, kill, marked, firstWoundShot
 };
 
 // стадия игры(не слишком полезно)
@@ -68,5 +68,6 @@ void Repaint(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11]);
 bool Check(char c);
 ShotResult ShootingChecker(int *x, int *y, SeaCell(*field)[11][11], Player(*playersPointer));
 void Print(SeaCell(*field)[11][11], SeaCell(*battleField)[11][11]);
-bool Playing(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11], Player(*playersPointer), Player(*aisPointer));
+bool Playing(SeaCell(*playerField)[11][11], SeaCell(*enemyField)[11][11], Player(*playersPointer),
+	 Player(*aisPointer), SeaCell(*specialPlayersFieldForAI)[11][11], bool *specialTactic);
 void FillShipInfo(SeaCell(*field)[11][11], Player(*pointer), int x, int y, int counter, int i, int xP, int yP);
