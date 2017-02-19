@@ -102,7 +102,7 @@ void PlacingShips(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11], Player
 
 			printf("Checking position, please wait\n");
 			int choose = charAlign - '0';*/
-
+			printf("Placing ships, please wait(%i)\n", numOfDecks);
 			srand(time(0));
 			int x = rand() % 10 + 0;
 			int y = rand() % 10 + 0;
@@ -331,6 +331,7 @@ void Print(SeaCell (*field)[11][11], SeaCell (*enemyField)[11][11])
 				}
 				case ship:
 				{
+					// TODO: PLACE S WITH .
 					printf("s ");
 					break;
 				}
@@ -393,7 +394,6 @@ bool Playing(SeaCell(*playerField)[11][11], SeaCell(*enemyField)[11][11], Player
 		switch(result)
 		{
 			case miss:
-			case marked:
 			{
 				(*enemyField)[x][y] = marked;
 				break;
@@ -426,7 +426,7 @@ bool Playing(SeaCell(*playerField)[11][11], SeaCell(*enemyField)[11][11], Player
 	return false;
 }
 //проверка попадания
-ShotResult ShootingChecker(int *x, int *y, SeaCell(*field)[11][11], Player(*playersPointer))
+/*ShotResult ShootingChecker(int *x, int *y, SeaCell(*field)[11][11], Player(*playersPointer))
 {
 	//Если указанная точка - корабль, то ищем его в данных игрока\бота чтобы уменьшить здоровье
 	if ((*field)[*x][*y] == ship)
@@ -435,6 +435,9 @@ ShotResult ShootingChecker(int *x, int *y, SeaCell(*field)[11][11], Player(*play
 		{
 			for (int j = 0; j < 4; j++)
 			{
+
+
+
 				if (((*playersPointer).ship[i].cell.x[j] == *x) && ((*playersPointer).ship[i].cell.y[j] == *y))
 				{
 					(*playersPointer).ship[i].health--;
@@ -442,26 +445,26 @@ ShotResult ShootingChecker(int *x, int *y, SeaCell(*field)[11][11], Player(*play
 					{
 						switch ((*playersPointer).ship[i].type)
 						{
-							case patrol:
-							{
-								(*playersPointer).count.numOf1ShipsPl--;
-								break;
-							}
-							case destroyer:
-							{
-								(*playersPointer).count.numOf2ShipsPl--;
-								break;
-							}
-							case cruiser:
-							{
-								(*playersPointer).count.numOf3ShipsPl--;
-								break;
-							}
-							case carrier:
-							{
-								(*playersPointer).count.numOf4ShipsPl--;
-								break;
-							}
+						case patrol:
+						{
+							(*playersPointer).count.numOf1ShipsPl--;
+							break;
+						}
+						case destroyer:
+						{
+							(*playersPointer).count.numOf2ShipsPl--;
+							break;
+						}
+						case cruiser:
+						{
+							(*playersPointer).count.numOf3ShipsPl--;
+							break;
+						}
+						case carrier:
+						{
+							(*playersPointer).count.numOf4ShipsPl--;
+							break;
+						}
 						}
 						return killed;
 					}
@@ -470,6 +473,9 @@ ShotResult ShootingChecker(int *x, int *y, SeaCell(*field)[11][11], Player(*play
 						return wounded;
 					}
 				}
+
+
+
 			}
 		}
 	}
@@ -481,4 +487,67 @@ ShotResult ShootingChecker(int *x, int *y, SeaCell(*field)[11][11], Player(*play
 		}
 	}
 	return miss;
+}*/
+
+ShotResult ShootingChecker(int *x, int *y, SeaCell(*field)[11][11], Player(*playersPointer))
+{
+	if ((*field)[*x][*y] == ship)
+	{
+		for (int totalNumOfPlayersShips = 0; totalNumOfPlayersShips < 10; totalNumOfPlayersShips++)
+		{
+			for (int numOfDeck = 0; numOfDeck < 4; numOfDeck++)
+			{
+				if (CompareCoord(x, y, field, playersPointer, totalNumOfPlayersShips ,numOfDeck))
+				{
+					return killed;
+				}
+			}
+		}
+	}
+	else if ((*field)[*x][*y] == kill)
+	{
+		return killed;
+	}
+	return miss;
+}
+
+bool CompareCoord(int *x, int *y, SeaCell(*field)[11][11], Player(*playersPointer), int i, int j)
+{
+	if (((*playersPointer).ship[i].cell.x[j] == *x) && ((*playersPointer).ship[i].cell.y[j] == *y))
+	{
+		(*playersPointer).ship[i].health--;
+
+		if ((*playersPointer).ship[i].health == 0)
+		{
+			switch ((*playersPointer).ship[i].type)
+			{
+				case patrol:
+				{
+					(*playersPointer).count.numOf1ShipsPl--;
+					break;
+				}
+				case destroyer:
+				{
+					(*playersPointer).count.numOf2ShipsPl--;
+					break;
+				}
+				case cruiser:
+				{
+					(*playersPointer).count.numOf3ShipsPl--;
+					break;
+				}
+				case carrier:
+				{
+					(*playersPointer).count.numOf4ShipsPl--;
+					break;
+				}
+			}
+			return true;
+		}
+		else
+		{
+			return true;
+		}
+	}
+	return false;
 }

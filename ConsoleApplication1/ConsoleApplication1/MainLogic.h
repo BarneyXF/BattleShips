@@ -1,4 +1,5 @@
 #pragma once
+
 const unsigned short numOf4Ships = 1;
 const unsigned short numOf3Ships = 2;
 const unsigned short numOf2Ships = 3;
@@ -26,7 +27,7 @@ enum Stage
 //результат выстрела
 enum ShotResult
 {
-	miss, killed, wounded
+	miss = 0, killed = 1, wounded = 2
 };
 
 //информация о количестве кораблей
@@ -70,3 +71,4 @@ ShotResult ShootingChecker(int *x, int *y, SeaCell(*field)[11][11], Player(*play
 void Print(SeaCell(*field)[11][11], SeaCell(*battleField)[11][11]);
 bool Playing(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11], Player(*playersPointer), Player(*aisPointer));
 void FillShipInfo(SeaCell(*field)[11][11], Player(*pointer), int x, int y, int counter, int i, int xP, int yP);
+bool CompareCoord(int *x, int *y, SeaCell(*field)[11][11], Player(*playersPointer), int i, int j)
