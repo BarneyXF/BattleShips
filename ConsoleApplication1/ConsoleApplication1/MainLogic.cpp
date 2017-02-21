@@ -6,25 +6,24 @@
 #include <conio.h>
 #include <cstdio>
 #include <cstdlib>
-// Additional libraries.
+
 #include "MainLogic.h"
 #include "AI.h"
-// Main function
+
 int main()
 {	
-	// Creating fields and pointers initialization
+	//создание и инициализация полей и ссылок
 	SeaCell playersBattleSea[11][11];
 	SeaCell(*playersField)[11][11] = &playersBattleSea;
 	SeaCell enemysBattleSea[11][11];
 	SeaCell(*enemysField)[11][11] = &enemysBattleSea;
-	//Stage gameStage = menu;
+	Stage gameStage = menu;
 
-	// Creating players and pointers initialization 
+	//создание и инициализация игроков и ссылок
 	Player player, ai;
 	Player(*playersPointer) = &player;
 	Player(*aisPointer) = &ai;
-
-	//gameStage = placing;
+	gameStage = placing;
 
 	for (int i = 0; i < 10; i++)
 		for (int j = 0; j < 10; j++)
@@ -32,12 +31,12 @@ int main()
 			playersBattleSea[i][j] = empty;
 			enemysBattleSea[i][j] = empty;
 		}
+	//размещаем корабли
 	PlacingShips(playersField, enemysField, playersPointer, aisPointer);
-	//gameStage = playing;
-	// Total number of players decks.
+	gameStage = playing;
 	player.count.totalNumOfPlSqares = 20;
 	ai.count.totalNumOfPlSqares = 20;
-
+	//играем
 	if (Playing(playersField, enemysField, playersPointer, aisPointer))
 	{
 		system("cls");
@@ -49,24 +48,21 @@ int main()
 		printf("You loose(fi vam)!\n");
 	}
 	printf("Press any keyboard button to continue...\n");		
-	// Waiting for players reaction.
+
 	_getch();
     return 0;
 }
-// Function for fill players fields
+
 void PlacingShips(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11], Player(*playersPointer), Player(*aisPointer))
 {
-	// Variable that controlling number of ships of each type.
 	int numOfShipsOfType = 4;
-	// Number of ships.
 	int shipCounter = 0;
 	for (int numOfDecks = 1; numOfDecks <= 4; numOfDecks++)
 	{
 		numOfShipsOfType--;
 		for (int j = numOfShipsOfType; j >= 0; j--)
 		{
-			// TODO: UNCOMMENT
-			//char charX, charY;
+			char charX, charY;
 			//system("cls");
 			//Repaint(field, enemysfield);
 			/*printf("Enter x coordinate for %i - deck's ship\n", numOfDecks);
@@ -106,63 +102,48 @@ void PlacingShips(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11], Player
 
 			printf("Checking position, please wait\n");
 			int choose = charAlign - '0';*/
-			// TODO: COMMENT TWO NEXT STRINGS
-			system("cls");
 			printf("Placing ships, please wait(%i)\n", numOfDecks);
 			srand(time(0));
 			int x = rand() % 10 + 0;
 			int y = rand() % 10 + 0;
-			if (numOfDecks > 2)
-			{
-				if (PlacingCheck(x, y, field, playersPointer, numOfDecks, 1, 0))
-				{
-					FillShipInfo(field, playersPointer, x, y, shipCounter, numOfDecks, 1, 0);
-				}
-				else
-				{
-					j++;
-				}
-				continue;
-			}
-			// If 1 then we place ship vertical, 0 - horizontal.
-			// TODO: REWRITE TO GETTING FROM CONSOLE
-			int placingMode = rand() % 2 + 0;
+			int r = rand() % 2 + 0;
 
-			switch (placingMode) //switch (choose)
+			switch (r) //switch (choose)
 			{
-			case 0:
-			{
-				if (PlacingCheck(x, y, field, playersPointer, numOfDecks, 1, 0))
+				case 0:
 				{
-					FillShipInfo(field, playersPointer, x, y, shipCounter, numOfDecks, 1, 0);
+					if (PlacingCheck(x, y, field, playersPointer, numOfDecks, 1, 0))
+					{
+						FillShipInfo(field, playersPointer, x, y, shipCounter, numOfDecks, 1, 0);
+					}
+					else
+					{
+						j++;
+						continue;
+					}
+					break;
 				}
-				else
+				case 1:
 				{
-					j++;
-					continue;
+					if (PlacingCheck(x, y, field, playersPointer, numOfDecks, 0, 1))
+					{
+						FillShipInfo(field, playersPointer, x, y, shipCounter, numOfDecks, 0, 1);
+					}
+					else
+					{
+						j++;
+						continue;
+					}
+					break;
 				}
-				break;
 			}
-			case 1:
-			{
-				if (PlacingCheck(x, y, field, playersPointer, numOfDecks, 0, 1))
-				{
-					FillShipInfo(field, playersPointer, x, y, shipCounter, numOfDecks, 0, 1);
-				}
-				else
-				{
-					j++;
-					continue;
-				}
-				break;
-			}
-			}
+
 		}
 	}
 	system("cls");
 	Repaint(field, enemysfield);
-	printf("Placed! Please wait for ai's (he placing ships).\n");
-	// AI placing ships
+	printf("Placed! Please wait for ai's turn.\n");
+
 	numOfShipsOfType = 4;
 	shipCounter = 0;
 	for (int numOfDecks = 1; numOfDecks <= 4; numOfDecks++)
@@ -170,25 +151,12 @@ void PlacingShips(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11], Player
 		numOfShipsOfType--;
 		for (int j = numOfShipsOfType; j >= 0; j--)
 		{	
-			// Randomizer of placing coordinates.
 			srand(time(0));
 			int randomX = rand() % 10 + 0;
 			int randomY = rand() % 10 + 0;
-			if (numOfDecks > 2)
-			{
-				if (PlacingCheck(randomX, randomY, enemysfield, aisPointer, numOfDecks, 1, 0))
-				{
-					FillShipInfo(enemysfield, aisPointer, randomX, randomY, shipCounter, numOfDecks, 1, 0);
-				}
-				else
-				{
-					j++;
-				}
-				continue;
-			}
-			int placingMode = rand() % 2 + 0;
+			int r = rand() % 2 + 0;
 
-			switch (placingMode)
+			switch (r)
 			{
 				case 0:
 				{
@@ -222,135 +190,228 @@ void PlacingShips(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11], Player
 	}
 	system("cls");
 	Repaint(field, enemysfield);
+	printf("\nPress any keyboard button to continue...\n\n");
 }
-// Filling ship's information in player's "profile".
-void FillShipInfo(SeaCell(*field)[11][11], Player(*pointer), int x, int y, int shipsNum, int numOfDecks,int xAugment, int yAugment)
+
+bool Check(char c)
 {
-	// Going through ship and filling it's coordinates and ship type.
-	for (int k = 0; k < numOfDecks; k++)
+	if ((c >= '0') && (c <= '9'))
 	{
-		int xOffset = x + k + xAugment;
-		int yOffset = y + k + yAugment;
-		(*field)[xOffset][yOffset] = ship;
-		(*pointer).ship[shipsNum].cell.x[k] = xOffset;
-		(*pointer).ship[shipsNum].cell.y[k] = yOffset;
-		(*pointer).ship[shipsNum].type = (ShipType)numOfDecks;
+		return true;
 	}
-	// Fill player's ships counter.
-	switch ((ShipType)(numOfDecks))
+	return false;
+}
+// заполнение информации о корабле в "профиль" игрока
+void FillShipInfo(SeaCell(*field)[11][11], Player(*pointer), int x, int y, int counter, int i,int xP, int yP)
+{
+	for (int k = 0; k < i; k++)
+	{
+		(*field)[x + k * xP][y + k * yP] = ship;
+		(*pointer).ship[counter].cell.x[k] = x + k * xP;
+		(*pointer).ship[counter].cell.y[k] = y + k * yP;
+		(*pointer).ship[counter].type = (ShipType)i;
+	}
+	switch ((ShipType)(i))
 	{
 		case patrol:
 		{
 			(*pointer).count.numOf1ShipsPl++;
-			(*pointer).ship[shipsNum].health = 1;
+			(*pointer).ship[counter].health = 1;
 			break;
 		}
 		case destroyer:
 		{
 			(*pointer).count.numOf2ShipsPl++;
-			(*pointer).ship[shipsNum].health = 2;
+			(*pointer).ship[counter].health = 2;
 			break;
 		}
 		case cruiser:
 		{
 			(*pointer).count.numOf3ShipsPl++;
-			(*pointer).ship[shipsNum].health = 3;
+			(*pointer).ship[counter].health = 3;
 			break;
 		}
 		case carrier:
 		{
 			(*pointer).count.numOf4ShipsPl++;
-			(*pointer).ship[shipsNum].health = 4;
+			(*pointer).ship[counter].health = 4;
 			break;
 		}
 	}					
 }
-// Checking if we can place ship at this(x, y) and another(xP) coordinates
-bool PlacingCheck(int x, int y, SeaCell(*field)[11][11], Player (*player), int totalNumOfDecks, int xAugment, int yAugment)
+// проверка положения
+bool PlacingCheck(int x, int y, SeaCell(*field)[11][11], Player (*player), int numOfDecks, int xP, int yP)
 {
+	int totalCount = 0;
 	bool canPlace = false;
-	
-	for (int numOfDecks = 0; numOfDecks < totalNumOfDecks; numOfDecks++)
+	for (int k = 0; k < numOfDecks; k++)
 	{
-		// Offset about point(x, y) in sqare 3 * 3.
-		int xOffset = x + numOfDecks * xAugment;
-		int yOffset = y + numOfDecks * yAugment;
-		// If ship or we out of bounds
-		if (((*field)[xOffset][yOffset] == ship) || ((xOffset > 9) || (yOffset > 9)))
+		if ((*field)[x + k * xP][y + k * yP] == ship)
 		{
 			return false;
 		}
-		// Going around point in 3 * 3 area and searching any reasons for stop operation.
-		for (int areasX = 0; areasX < 3; areasX++)
-			for (int areasY = 0; areasY < 3; areasY++)
-				switch ((*field)[xOffset - 1 + areasY][yOffset - 1 + areasX])
+		else
+		{
+			if ((x + k * xP > 9) || (y + k * yP > 9))
+			{
+				return false;
+			}
+			for (int i = 0; i < 3; i++)
+			{
+				for (int j = 0; j < 3; j++)
 				{
-				case empty:
-				{
-					canPlace = true;
-					break;
+					switch ((*field)[x - 1 + j + k * xP][y - 1 + i + k * yP])
+					{
+						case empty:
+						{
+							canPlace = true;
+							break;
+						}
+						case ship:
+						{
+							// TODO: Error message
+							return false;
+						}
+					}
 				}
-				case ship:
-				{
-					return false;
-				}
-				}
+			}
+		}
 	}
 	if (!canPlace)
 	{
 		return false;
 	}
-	return true;
+	else
+	{
+		return true;
+	}
 }
-// Playing function
+//вывод полей на экран
+void Print(SeaCell (*field)[11][11], SeaCell (*enemyField)[11][11])
+{
+	printf("  0 1 2 3 4 5 6 7 8 9\t  0 1 2 3 4 5 6 7 8 9\n");
+	for (int j = 0; j < 10; j++)
+	{
+		printf("%i ", j);
+		for (int i = 0; i < 10; i++)
+		{
+			switch ((*field)[i][j])
+			{
+				case empty:
+				{
+					printf(". ");
+					break;
+				}
+				case ship:
+				{
+					printf("s ");
+					break;
+				}
+				case marked:
+				{
+					printf("o ");
+					break;
+				}
+				case kill:
+				{
+					printf("X ");
+					break;
+				}
+			}		
+		}
+		printf("\t%i ", j);
+		for (int i = 0; i < 10; i++)
+		{
+			switch ((*enemyField)[i][j])
+			{
+				case empty:
+				{
+					printf(". ");
+					break;
+				}
+				case ship:
+				{
+					// TODO: PLACE S WITH .
+					printf("s ");
+					break;
+				}
+				case marked:
+				{
+					printf("o ");
+					break;
+				}
+				case kill:
+				{
+					printf("X ");
+					break;
+				}
+			}
+		}
+		printf("\n");
+	}
+}
+// доп информация
+void Repaint(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11])
+{
+	printf("BattleShips: Player vs AI(ip: localhost)\n\n");
+	printf("\t Your's field \t\tEnemy's field\n\n");
+	Print(field, enemyField);
+	printf("\nCurrent actions:\n\nPress \"esc\" to exit or \n");
+}
+//стадия игры
 bool Playing(SeaCell(*playerField)[11][11], SeaCell(*enemyField)[11][11], Player(*playersPointer), Player(*aisPointer))
 {
-	ShotResult result = none;
 	do 
 	{
-		// Variables for char's representation of int's x and y.
 		char charX, charY;
-		// Clears screen.
 		system("cls");
 		Repaint(playerField, enemyField);
 		printf("Enter x coordinate for shoot\n");
-		charX = GetNum();
+		do
+		{
+			charX = _getch();
+			if (charX == 27)
+			{
+				return false;
+			}
+		} while (!Check(charX));
+
 		printf("X coordinate is: %c\n\nEnter y coordinate\n", charX);
-		charY = GetNum();
+		do
+		{
+			charY = _getch();
+			if (charY == 27)
+			{
+				return false;
+			}
+		} while (!Check(charY));
+
 		printf("Y coordinate is: %c\n\n Shot result is:", charY);
 		int x = charX - '0';
 		int y = charY - '0';
 
-		result = ShootingChecker(&x, &y, enemyField, aisPointer);
+		ShotResult result = ShootingChecker(&x, &y, enemyField, aisPointer);
 		switch(result)
 		{
 			case miss:
 			{
 				(*enemyField)[x][y] = marked;
-				printf("miss.\n");
 				break;
 			}
 			case wounded:
-			{
-				(*enemyField)[x][y] = kill;
-				printf("got it.\n");
-				(*aisPointer).count.totalNumOfPlSqares--;
-				// If player kill emeny's ship, then he shoot again.
-				continue;
-			}
 			case killed:
 			{
 				(*enemyField)[x][y] = kill;
-				printf("got it.\n");
 				(*aisPointer).count.totalNumOfPlSqares--;
 				break;
 			}
+			
 		}
 
-		// AI's turn (if he has any ship).
+		// AI's turn
 		if ((*aisPointer).count.totalNumOfPlSqares > 0)
 		{
-			// TODO: Add repeating if ai wounded players ship.
+			;
 			//BOTS TURN(PLACE YOUR CODE HERE)
 			turnOfAI(playerField, playersPointer);
 			//END OF THE BOTS TURN
@@ -364,113 +425,101 @@ bool Playing(SeaCell(*playerField)[11][11], SeaCell(*enemyField)[11][11], Player
 	
 	return false;
 }
-// Printing additional info
-void Repaint(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11])
+//проверка попадания
+/*ShotResult ShootingChecker(int *x, int *y, SeaCell(*field)[11][11], Player(*playersPointer))
 {
-	printf("BattleShips: Player vs AI(ip: localhost)\n\n");
-	printf("\t Your's field \t\tEnemy's field\n\n");
-	Print(field, enemyField);
-	printf("\nCurrent actions:\n\nPress \"esc\" to exit or \n");
-}
-// Printing game fields.
-void Print(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11])
-{
-	printf("  0 1 2 3 4 5 6 7 8 9\t  0 1 2 3 4 5 6 7 8 9\n");
-	for (int y = 0; y < 10; y++)
+	//Если указанная точка - корабль, то ищем его в данных игрока\бота чтобы уменьшить здоровье
+	if ((*field)[*x][*y] == ship)
 	{
-		printf("%i ", y);
-		for (int x = 0; x < 10; x++)
-		{
-			switch ((*field)[x][y])
-			{
-			case empty:
-			{
-				printf(Free_Cell);
-				break;
-			}
-			case ship:
-			{
-				printf(Alive_Ship);
-				break;
-			}
-			case marked:
-			{
-				printf(Missed_Shot);
-				break;
-			}
-			case kill:
-			{
-				printf(Killed_Ship);
-				break;
-			}
-			}
-		}
-		printf("\t%i ", y);
 		for (int i = 0; i < 10; i++)
 		{
-			switch ((*enemyField)[i][y])
+			for (int j = 0; j < 4; j++)
 			{
-			case empty:
-			{
-				printf(Free_Cell);
-				break;
-			}
-			case ship:
-			{
-				// TODO: PLACE Alive_Ship WITH Free_Cell
-				printf(Alive_Ship);
-				break;
-			}
-			case marked:
-			{
-				printf(Missed_Shot);
-				break;
-			}
-			case kill:
-			{
-				printf(Killed_Ship);
-				break;
-			}
+
+
+
+				if (((*playersPointer).ship[i].cell.x[j] == *x) && ((*playersPointer).ship[i].cell.y[j] == *y))
+				{
+					(*playersPointer).ship[i].health--;
+					if ((*playersPointer).ship[i].health == 0)
+					{
+						switch ((*playersPointer).ship[i].type)
+						{
+						case patrol:
+						{
+							(*playersPointer).count.numOf1ShipsPl--;
+							break;
+						}
+						case destroyer:
+						{
+							(*playersPointer).count.numOf2ShipsPl--;
+							break;
+						}
+						case cruiser:
+						{
+							(*playersPointer).count.numOf3ShipsPl--;
+							break;
+						}
+						case carrier:
+						{
+							(*playersPointer).count.numOf4ShipsPl--;
+							break;
+						}
+						}
+						return killed;
+					}
+					else
+					{
+						return wounded;
+					}
+				}
+
+
+
 			}
 		}
-		printf("\n");
 	}
-}
-// Checking if we kill the ship (or it's deck).
+	else
+	{
+		if ((*field)[*x][*y] == kill)
+		{
+			return killed;
+		}
+	}
+	return miss;
+}*/
+
 ShotResult ShootingChecker(int *x, int *y, SeaCell(*field)[11][11], Player(*playersPointer))
 {
 	if ((*field)[*x][*y] == ship)
 	{
-		// Accessing to each ship.
-		for (int numOfPlayersShip = 0; numOfPlayersShip < 10; numOfPlayersShip++)
+		for (int totalNumOfPlayersShips = 0; totalNumOfPlayersShips < 10; totalNumOfPlayersShips++)
 		{
-			// Accessing to each deck.
 			for (int numOfDeck = 0; numOfDeck < 4; numOfDeck++)
 			{
-				if (CompareCoord(x, y, field, playersPointer, numOfPlayersShip ,numOfDeck))
+				if (CompareCoord(x, y, field, playersPointer, totalNumOfPlayersShips ,numOfDeck))
 				{
-					return wounded;
+					return killed;
 				}
 			}
 		}
 	}
 	else if ((*field)[*x][*y] == kill)
 	{
-		// If we shoot at the cell, that marked as, for example, "killed", then we just continue; 
 		return killed;
 	}
 	return miss;
 }
-// Trying to find ship's cell in Player's data("profile").
-bool CompareCoord(int *x, int *y, SeaCell(*field)[11][11], Player(*playersPointer), int numOfPlayersShip, int numOfDeck)
+
+bool CompareCoord(int *x, int *y, SeaCell(*field)[11][11], Player(*playersPointer), int i, int j)
 {
-	if (((*playersPointer).ship[numOfPlayersShip].cell.x[numOfDeck] == *x) && ((*playersPointer).ship[numOfPlayersShip].cell.y[numOfDeck] == *y))
+	if (((*playersPointer).ship[i].cell.x[j] == *x) && ((*playersPointer).ship[i].cell.y[j] == *y))
 	{
-		(*playersPointer).ship[numOfPlayersShip].health--;
-		// If ship has no health(all cells are marked as "killed") then we decrementing ship's counter in player's data.
-		if ((*playersPointer).ship[numOfPlayersShip].health == 0)
+		(*playersPointer).ship[i].health--;
+
+		if ((*playersPointer).ship[i].health == 0)
 		{
-			switch ((*playersPointer).ship[numOfPlayersShip].type)
+			switch ((*playersPointer).ship[i].type)
 			{
 				case patrol:
 				{
@@ -499,35 +548,6 @@ bool CompareCoord(int *x, int *y, SeaCell(*field)[11][11], Player(*playersPointe
 		{
 			return true;
 		}
-	}
-	return false;
-}
-// Reading number in char variable.
-char GetNum()
-{
-	char num;
-	do
-	{
-		num = _getch();
-		// 27 is ESC - button code.
-		if (num == 27)
-		{
-			system("cls");
-			printf("You loose(fi vam)!\n");
-			printf("Press any keyboard button to continue...\n");
-			// Wait for player's reaction.
-			_getch();
-			exit(0);
-		}
-	} while (!Check(num));
-	return num;
-}
-// Checking char symbol if it not a number. 
-bool Check(char symbol)
-{
-	if ((symbol >= '0') && (symbol <= '9'))
-	{
-		return true;
 	}
 	return false;
 }
