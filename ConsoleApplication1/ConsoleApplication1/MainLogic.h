@@ -1,4 +1,11 @@
 #pragma once
+#define Left_Border '0'
+#define Right_BorderOfAlign '1'
+#define Right_Border '9'
+#define Free_Cell ". "
+#define Ship_Cell "s "
+#define Miss_Cell "o "
+#define Killed_Cell "x "
 
 const unsigned short numOf4Ships = 1;
 const unsigned short numOf3Ships = 2;
@@ -27,7 +34,7 @@ enum Stage
 //результат выстрела
 enum ShotResult
 {
-	miss = 0, killed = 1, wounded = 2
+	miss = 0, killed = 1, wounded = 2, none = 3, repeatedShot = 4
 };
 
 //информация о количестве кораблей
@@ -66,9 +73,13 @@ typedef struct
 void PlacingShips(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11], Player(*playersPointer), Player(*aisPointer));
 bool PlacingCheck(int x, int y, SeaCell(*field)[11][11], Player(*playersPointer), int numOfDecks, int xP, int yP);
 void Repaint(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11]);
-bool Check(char c);
+//bool Check(char c);
 ShotResult ShootingChecker(int *x, int *y, SeaCell(*field)[11][11], Player(*playersPointer));
 void Print(SeaCell(*field)[11][11], SeaCell(*battleField)[11][11]);
 bool Playing(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11], Player(*playersPointer), Player(*aisPointer));
 void FillShipInfo(SeaCell(*field)[11][11], Player(*pointer), int x, int y, int counter, int i, int xP, int yP);
-bool CompareCoord(int *x, int *y, SeaCell(*field)[11][11], Player(*playersPointer), int i, int j)
+ShotResult CompareCoord(int *x, int *y, SeaCell(*field)[11][11], Player(*playersPointer), int i, int j);
+
+bool GetNum(char *symbol, char leftBorder, char rightBorder);
+bool Check(char symbol, char leftBorder, char rightBorder);
+bool PlacingFunction(int x, int y, int placingMode, int numOfDecks, int shipCounter, SeaCell(*field)[11][11], Player(*playersPointer));
