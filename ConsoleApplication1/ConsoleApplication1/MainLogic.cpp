@@ -11,7 +11,6 @@
 
 int main()
 {	
-	//создание и инициализация полей и ссылок
 	SeaCell playersBattleSea[11][11];
 	SeaCell(*playersField)[11][11] = &playersBattleSea;
 	SeaCell enemysBattleSea[11][11];
@@ -26,7 +25,6 @@ int main()
 	// next target square should be specially chosen.
 	bool specialTactic = false;
 
-	//создание и инициализация игроков и ссылок
 	Player player, ai;
 	Player(*playersPointer) = &player;
 	Player(*aisPointer) = &ai;
@@ -39,12 +37,11 @@ int main()
 			enemysBattleSea[i][j] = empty;
 		}
 
-	//размещаем корабли
 	PlacingShips(playersField, enemysField, playersPointer, aisPointer);
 	gameStage = playing;
 	player.count.totalNumOfPlSqares = 20;
 	ai.count.totalNumOfPlSqares = 20;
-	//играем
+
 	if (Playing(playersField, enemysField, playersPointer, aisPointer, &shipToAttack))
 	{
 		system("cls");
@@ -209,7 +206,7 @@ bool Check(char c)
 	}
 	return false;
 }
-// заполнение информации о корабле в "профиль" игрока
+
 void FillShipInfo(SeaCell(*field)[11][11], Player(*pointer), int x, int y, int counter, int i,int xP, int yP)
 {
 	for (int k = 0; k < i; k++)
@@ -247,7 +244,7 @@ void FillShipInfo(SeaCell(*field)[11][11], Player(*pointer), int x, int y, int c
 		}
 	}					
 }
-// проверка положения
+
 bool PlacingCheck(int x, int y, SeaCell(*field)[11][11], Player (*player), int numOfDecks, int xP, int yP)
 {
 	int totalCount = 0;
@@ -294,7 +291,7 @@ bool PlacingCheck(int x, int y, SeaCell(*field)[11][11], Player (*player), int n
 		return true;
 	}
 }
-//вывод полей на экран
+
 void Print(SeaCell (*field)[11][11], SeaCell (*enemyField)[11][11])
 {
 	printf("  0 1 2 3 4 5 6 7 8 9\t  0 1 2 3 4 5 6 7 8 9\n");
@@ -357,7 +354,7 @@ void Print(SeaCell (*field)[11][11], SeaCell (*enemyField)[11][11])
 		printf("\n");
 	}
 }
-// доп информация
+
 void Repaint(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11])
 {
 	printf("BattleShips: Player vs AI(ip: localhost)\n\n");
@@ -365,7 +362,7 @@ void Repaint(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11])
 	Print(field, enemyField);
 	printf("\nCurrent actions:\n\nPress \"esc\" to exit or \n");
 }
-//стадия игры
+
 bool Playing(SeaCell(*playersField)[11][11], SeaCell(*enemyField)[11][11], Player(*playersPointer), 
 			 Player(*aisPointer), DamagedShipToBeDestroedByAI *shipToAttack)
 {
@@ -431,10 +428,9 @@ bool Playing(SeaCell(*playersField)[11][11], SeaCell(*enemyField)[11][11], Playe
 	
 	return false;
 }
-//проверка попадания
+
 ShotResult ShootingChecker(int *x, int *y, SeaCell(*field)[11][11], Player(*playersPointer))
 {
-	//Если указанная точка - корабль, то ищем его в данных игрока\бота чтобы уменьшить здоровье
 	if ((*field)[*x][*y] == ship)
 	{
 		for (int i = 0; i < 10; i++)

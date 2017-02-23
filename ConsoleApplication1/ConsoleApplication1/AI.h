@@ -1,6 +1,8 @@
 #pragma once
 #include "MainLogic.h"
 
+
+
 enum sideToShoot
 {
 	left = 0,
@@ -8,6 +10,8 @@ enum sideToShoot
 	top = 2,
 	bottom = 3
 };
+
+
 
 void TurnOfAI(SeaCell(*playersField)[11][11], Player(*playersPointer), DamagedShipToBeDestroedByAI *shipToAttack);
 void ChooseRandomSquare(int(*x), int(*y), SeaCell(*playersField)[11][11]);
