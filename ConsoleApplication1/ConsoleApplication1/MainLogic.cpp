@@ -7,8 +7,9 @@
 #include <cstdio>
 #include <cstdlib>
 
-// Additional libraries.
-#include "AI.h"
+// Additional header files.
+#include "../Headers/ConsoleApplication1/MainLogic.h"
+#include "../Headers/AI/AI.h"
 
 // Main function.
 int main()
@@ -17,7 +18,8 @@ int main()
 	SeaCell playersBattleSea[11][11];
 	SeaCell enemysBattleSea[11][11];
 	Stage gameStage = menu;
-	Player player, ai;
+	Player player;
+	Player ai;
 
 	// Struct used by AI to save data about attacked ship.
 	DamagedShipToBeDestroedByAI shipToAttack;
@@ -53,6 +55,7 @@ int main()
 	_getch();
     return 0;
 }
+
 // Placing ships on the fields.
 void PlacingShips(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11], Player(*playersPointer), Player(*aisPointer))
 {
@@ -64,8 +67,8 @@ void PlacingShips(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11], Player
 		for (int j = numOfShipsOfType; j >= 0; j--)
 		{
 			//char charX, charY;
-			system("cls");
 			Repaint(field, enemysfield);
+			printf("\nCurrent actions:\n\nPress \"esc\" to exit or \n");
 
 			/*printf("Enter x coordinate for %i - deck's ship\n", numOfDecks);
 			if (!GetNum(&charX, Left_Border, Right_Border))
@@ -105,8 +108,8 @@ void PlacingShips(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11], Player
 			shipCounter++;
 		}
 	}
-	system("cls");
 	Repaint(field, enemysfield);
+	printf("\nCurrent actions:\n\nPress \"esc\" to exit or \n");
 	printf("Placed! Please wait for ai's turn.\n");
 
 	// AI placing ships
@@ -130,8 +133,8 @@ void PlacingShips(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11], Player
 			shipCounter++;
 		}
 	}
-	system("cls");
 	Repaint(field, enemysfield);
+	printf("\nCurrent actions:\n\nPress \"esc\" to exit or \n");
 	printf("\nPress any keyboard button to continue...\n\n");
 }
 
@@ -343,10 +346,10 @@ void Print(SeaCell (*field)[11][11], SeaCell (*enemyField)[11][11])
 // Printing some additional information.
 void Repaint(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11])
 {
+	system("cls");
 	printf("BattleShips: Player vs AI(ip: localhost)\n\n");
 	printf("\t Your's field \t\tEnemy's field\n\n");
 	Print(field, enemyField);
-	printf("\nCurrent actions:\n\nPress \"esc\" to exit or \n");
 }
 
 // Main action 
@@ -357,8 +360,8 @@ bool Playing(SeaCell(*playersField)[11][11], SeaCell(*enemyField)[11][11], Playe
 	do 
 	{
 		char charX, charY;
-		system("cls");
 		Repaint(playersField, enemyField);
+		printf("\nCurrent actions:\n\nPress \"esc\" to exit or \n");
 		printf("Enter x coordinate for shoot\n");
 		if (!GetNum(&charX, Left_Border, Right_Border))
 		{
@@ -381,7 +384,6 @@ bool Playing(SeaCell(*playersField)[11][11], SeaCell(*enemyField)[11][11], Playe
 			case repeatedShot:
 			{
 				(*enemyField)[x][y] = kill;
-				(*aisPointer).count.totalNumOfPlSquares--;
 				printf("are you serious? You shot at this point already!\n");
 				break;
 			}
@@ -419,7 +421,7 @@ bool Playing(SeaCell(*playersField)[11][11], SeaCell(*enemyField)[11][11], Playe
 		// AI's turn
 		if ((*aisPointer).count.totalNumOfPlSquares > 0)
 		{
-			TurnOfAI(playersField, playersPointer, shipToAttack);
+			TurnOfAI(playersField, playersPointer, shipToAttack, enemyField);
 		}
 		else
 		{

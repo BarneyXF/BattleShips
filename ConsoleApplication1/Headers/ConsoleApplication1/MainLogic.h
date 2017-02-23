@@ -111,7 +111,6 @@ typedef struct
  */
  
 
-
 void PlacingShips(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11], Player(*playersPointer), Player(*aisPointer));
 bool Placing(int x, int y, int placingMode, int numOfDecks, int shipCounter, 
 			 SeaCell(*field)[11][11], Player(*playersPointer));
