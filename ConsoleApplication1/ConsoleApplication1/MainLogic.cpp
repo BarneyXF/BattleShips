@@ -16,7 +16,6 @@ int main()
 	// Creating battle fields and players.
 	SeaCell playersBattleSea[11][11];
 	SeaCell enemysBattleSea[11][11];
-	SeaCell(*enemysField)[11][11] = &enemysBattleSea;
 	Stage gameStage = menu;
 	Player player, ai;
 
@@ -33,20 +32,12 @@ int main()
 		}
 	}
 
-	PlacingShips(playersField, enemysField, playersPointer, aisPointer);
-	gameStage = playing;
-	player.count.totalNumOfPlSqares = 20;
-	ai.count.totalNumOfPlSqares = 20;
-
-	if (Playing(playersField, enemysField, playersPointer, aisPointer, &shipToAttack))
-=======
 	PlacingShips(&playersBattleSea, &enemysBattleSea, &player, &ai);
 
-	player.count.totalNumOfPlSqares = totalNumOfSqares;
-	ai.count.totalNumOfPlSqares = totalNumOfSqares;
+	player.count.totalNumOfPlSquares = totalNumOfSqares;
+	ai.count.totalNumOfPlSquares = totalNumOfSqares;
 
-	if (Playing(&playersBattleSea, &enemysBattleSea, &player, &ai))
->>>>>>> origin/Logic
+	if (Playing(&playersBattleSea, &enemysBattleSea, &player, &ai, &shipToAttack))
 	{
 		system("cls");
 		printf("You win!\n");
@@ -56,8 +47,9 @@ int main()
 		system("cls");
 		printf("You loose(fi vam)!\n");
 	}
+	
 	printf("Press any keyboard button to continue...\n");		
-	// Waiting players reaction
+	// Waiting for players reaction
 	_getch();
     return 0;
 }
@@ -105,7 +97,7 @@ void PlacingShips(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11], Player
 			int x = rand() % 10 + 0;
 			int y = rand() % 10 + 0;
 			int placingMode = rand() % 2 + 0;
-			if (!PlacingFunction(x, y, placingMode, numOfDecks, shipCounter, field, playersPointer))
+			if (!Placing(x, y, placingMode, numOfDecks, shipCounter, field, playersPointer))
 			{
 				j++;
 				continue;
@@ -130,7 +122,7 @@ void PlacingShips(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11], Player
 			int y = rand() % 10 + 0;
 			int placingMode = rand() % 2 + 0;
 
-			if (!PlacingFunction(x, y, placingMode, numOfDecks, shipCounter, enemysfield, aisPointer))
+			if (!Placing(x, y, placingMode, numOfDecks, shipCounter, enemysfield, aisPointer))
 			{
 				j++;
 				continue;
@@ -142,10 +134,12 @@ void PlacingShips(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11], Player
 	Repaint(field, enemysfield);
 	printf("\nPress any keyboard button to continue...\n\n");
 }
+
 // Placing ships align and fill switching function.
-bool PlacingFunction(int x, int y, int placingMode, int numOfDecks, int shipCounter, SeaCell(*field)[11][11], Player(*playersPointer))
+bool Placing(int x, int y, int placingMode, int numOfDecks, int shipCounter, 
+			 SeaCell(*field)[11][11], Player(*playersPointer))
 {
-	// If we have ship with less than 2 decks we don't need to ask aligment.
+	// If we have ship with less than 2 decks we don't need to ask alignment.
 	if (numOfDecks < 2)
 	{
 		if (PlacingCheck(x, y, field, playersPointer, numOfDecks, 1, 0))
@@ -187,13 +181,10 @@ bool PlacingFunction(int x, int y, int placingMode, int numOfDecks, int shipCoun
 	}
 	return true;
 }
-<<<<<<< HEAD
 
-void FillShipInfo(SeaCell(*field)[11][11], Player(*pointer), int x, int y, int counter, int i,int xP, int yP)
-=======
 // Filling ship's information in player's "profile".
-void FillShipInfo(SeaCell(*field)[11][11], Player(*pointer), int x, int y, int shipsCounter, int totalNumOfDecks ,int xAugment, int yAugment)
->>>>>>> origin/Logic
+void FillShipInfo(SeaCell(*field)[11][11], Player(*pointer), int x, int y, int shipsCounter, 
+				  int totalNumOfDecks ,int xAugment, int yAugment)
 {
 	for (int currentNumOfDeck = 0; currentNumOfDeck < totalNumOfDecks; currentNumOfDeck++)
 	{
@@ -233,13 +224,9 @@ void FillShipInfo(SeaCell(*field)[11][11], Player(*pointer), int x, int y, int s
 		}
 	}					
 }
-<<<<<<< HEAD
 
-bool PlacingCheck(int x, int y, SeaCell(*field)[11][11], Player (*player), int numOfDecks, int xP, int yP)
-=======
 // Ckecking if we can place ship in this coordinates.
 bool PlacingCheck(int x, int y, SeaCell(*field)[11][11], Player (*player), int totalNumOfDecks, int xAugment, int yAugment)
->>>>>>> origin/Logic
 {
 	bool canPlace = false;
 	for (int currentNumOfDeck = 0; currentNumOfDeck < totalNumOfDecks; currentNumOfDeck++)
@@ -287,11 +274,8 @@ bool PlacingCheck(int x, int y, SeaCell(*field)[11][11], Player (*player), int t
 		return true;
 	}
 }
-<<<<<<< HEAD
 
-=======
 // Printing fields on screen.
->>>>>>> origin/Logic
 void Print(SeaCell (*field)[11][11], SeaCell (*enemyField)[11][11])
 {
 	printf("  0 1 2 3 4 5 6 7 8 9\t  0 1 2 3 4 5 6 7 8 9\n");
@@ -355,11 +339,8 @@ void Print(SeaCell (*field)[11][11], SeaCell (*enemyField)[11][11])
 		printf("\n");
 	}
 }
-<<<<<<< HEAD
 
-=======
 // Printing some additional information.
->>>>>>> origin/Logic
 void Repaint(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11])
 {
 	printf("BattleShips: Player vs AI(ip: localhost)\n\n");
@@ -367,26 +348,17 @@ void Repaint(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11])
 	Print(field, enemyField);
 	printf("\nCurrent actions:\n\nPress \"esc\" to exit or \n");
 }
-<<<<<<< HEAD
 
+// Main action 
 bool Playing(SeaCell(*playersField)[11][11], SeaCell(*enemyField)[11][11], Player(*playersPointer), 
 			 Player(*aisPointer), DamagedShipToBeDestroedByAI *shipToAttack)
-=======
-// Main action 
-bool Playing(SeaCell(*playerField)[11][11], SeaCell(*enemyField)[11][11], Player(*playersPointer), Player(*aisPointer))
->>>>>>> origin/Logic
 {
 	ShotResult result = none;
 	do 
 	{
 		char charX, charY;
 		system("cls");
-<<<<<<< HEAD
 		Repaint(playersField, enemyField);
-=======
-		Repaint(playerField, enemyField);
-
->>>>>>> origin/Logic
 		printf("Enter x coordinate for shoot\n");
 		if (!GetNum(&charX, Left_Border, Right_Border))
 		{
@@ -409,7 +381,7 @@ bool Playing(SeaCell(*playerField)[11][11], SeaCell(*enemyField)[11][11], Player
 			case repeatedShot:
 			{
 				(*enemyField)[x][y] = kill;
-				(*aisPointer).count.totalNumOfPlSqares--;
+				(*aisPointer).count.totalNumOfPlSquares--;
 				printf("are you serious? You shot at this point already!\n");
 				break;
 			}
@@ -419,23 +391,21 @@ bool Playing(SeaCell(*playerField)[11][11], SeaCell(*enemyField)[11][11], Player
 				printf("missed. Lol.\n");
 				break;
 			}
-<<<<<<< HEAD
+
 			case damaged:
-=======
-			case wounded:
 			{
 				(*enemyField)[x][y] = kill;
-				(*aisPointer).count.totalNumOfPlSqares--;
-				printf("wounded.\n");
+				(*aisPointer).count.totalNumOfPlSquares--;
+				printf("damaged.\n");
 				printf("Your turn again. Press any keyboard button to continue...\n");
 				_getch();
 				continue;
 			}
->>>>>>> origin/Logic
+
 			case killed:
 			{
 				(*enemyField)[x][y] = kill;
-				(*aisPointer).count.totalNumOfPlSqares--;
+				(*aisPointer).count.totalNumOfPlSquares--;
 				printf("killed! Good job.\n");
 				printf("Your turn again. Press any keyboard button to continue...\n");
 				_getch();
@@ -445,38 +415,27 @@ bool Playing(SeaCell(*playerField)[11][11], SeaCell(*enemyField)[11][11], Player
 		}
 		printf("Now AI's turn. Press any keyboard button to continue...\n");
 		_getch();
-		// AI's turn
-		if ((*aisPointer).count.totalNumOfPlSqares > 0)
-		{
-<<<<<<< HEAD
-			TurnOfAI(playersField, playersPointer, shipToAttack);
-=======
-			// TODO: We need to know the result of bot's shot to print it on the screen!
 
-			//BOTS TURN(PLACE YOUR CODE HERE)
-			turnOfAI(playerField, playersPointer);
-			//END OF THE BOTS TURN
->>>>>>> origin/Logic
+		// AI's turn
+		if ((*aisPointer).count.totalNumOfPlSquares > 0)
+		{
+			TurnOfAI(playersField, playersPointer, shipToAttack);
 		}
 		else
 		{
 			return true;
 		}
 	}
-	while ((*playersPointer).count.totalNumOfPlSqares > 0);
+	while ((*playersPointer).count.totalNumOfPlSquares > 0);
 	
 	return false;
 }
-<<<<<<< HEAD
 
-ShotResult ShootingChecker(int *x, int *y, SeaCell(*field)[11][11], Player(*playersPointer))
-{
-=======
 // Checking shot result.
 ShotResult ShootingChecker(int *x, int *y, SeaCell(*field)[11][11], Player(*playersPointer))
 {
 	ShotResult result = miss;
->>>>>>> origin/Logic
+
 	if ((*field)[*x][*y] == ship)
 	{
 		// Accessing to each player's ship.
@@ -488,42 +447,7 @@ ShotResult ShootingChecker(int *x, int *y, SeaCell(*field)[11][11], Player(*play
 				result = CompareCoord(x, y, field, playersPointer, numOfPlayersShips, numOfDeck);
 				if (result != none)
 				{
-<<<<<<< HEAD
-					(*playersPointer).ship[i].health--;
-					if ((*playersPointer).ship[i].health == 0)
-					{
-						switch ((*playersPointer).ship[i].type)
-						{
-							case patrol:
-							{
-								(*playersPointer).count.numOf1ShipsPl--;
-								break;
-							}
-							case destroyer:
-							{
-								(*playersPointer).count.numOf2ShipsPl--;
-								break;
-							}
-							case cruiser:
-							{
-								(*playersPointer).count.numOf3ShipsPl--;
-								break;
-							}
-							case carrier:
-							{
-								(*playersPointer).count.numOf4ShipsPl--;
-								break;
-							}
-						}
-						return killed;
-					}
-					else
-					{
-						return damaged;
-					}
-=======
 					return result;
->>>>>>> origin/Logic
 				}
 			}
 		}
@@ -534,6 +458,7 @@ ShotResult ShootingChecker(int *x, int *y, SeaCell(*field)[11][11], Player(*play
 	}
 	return result;
 }
+
 // Checking coordinates if we hit ship.
 ShotResult CompareCoord(int *x, int *y, SeaCell(*field)[11][11], Player(*playersPointer), int numOfShip, int numOfDeck)
 {
@@ -570,11 +495,12 @@ ShotResult CompareCoord(int *x, int *y, SeaCell(*field)[11][11], Player(*players
 		}
 		else
 		{
-			return wounded;
+			return damaged;
 		}
 	}
 	return none;
 }
+
 // Returns false if user pressed esc, gets pressed button.
 bool GetNum(char *symbol, char leftBorder, char rightBorder)
 {
@@ -588,6 +514,7 @@ bool GetNum(char *symbol, char leftBorder, char rightBorder)
 	} while (!Check(*symbol, leftBorder, rightBorder));
 	return true;
 }
+
 // Checking if symbol in borders.
 bool Check(char symbol, char leftBorder, char rightBorder)
 {

@@ -6,30 +6,55 @@
 
 // Main function controlling AI's turn.
 void TurnOfAI(SeaCell(*playersField)[11][11], Player(*playersPointer), DamagedShipToBeDestroedByAI *shipToAttack)
-{
+{	
 	srand(time(0));
-	ShotResult result;
-	int x = 0;
-	int y = 0;
+	ShotResult result = miss;
+
+	// Initializing coordinates with first destroyed deck's coordinates.
+	// This way AI will try to shoot around them.
+	int x = shipToAttack->shotShipDecksCoordinates.x[0];
+	int y = shipToAttack->shotShipDecksCoordinates.y[0];
 
 	// True, if shot was successful.
 	bool extraAction = false;
 
-	// Shortcut
-	bool specialTactic = shipToAttack->specialTactic;
-
 	// Doing shots until miss
 	do
 	{
-		if (!specialTactic) ChooseRandomSquare(&x, &y, playersField);
-		else tryDestroyingSecondDeck(&x, &y, playersField);
-
-		//TODO: ShootingChecker doesn't work right. UPDATE: Pull Valera's commit.
+		ChoosingTactic(&x, &y, shipToAttack, playersField);
 		result = ShootingChecker(&x, &y, playersField, playersPointer);
 		extraAction = ContinueAction(&x, &y, result, playersField, playersPointer, shipToAttack);
 	} 
 	while (extraAction);
 }
+
+
+
+
+/* Chooses one of 3 tactics, depending on situation.
+ *
+ * 1st if true: no ship is currently damaged.
+ * 2nd if true: only one deck is destroyed.
+ * 3rd if true: more than one deck is destroyed.
+ */
+void ChoosingTactic(int *x, int *y, DamagedShipToBeDestroedByAI *shipToAttack, SeaCell(*playersField)[11][11])
+{
+	// Shortcuts
+	bool *specialTactic = &(shipToAttack->specialTactic);
+	int *destroyedDecks = &(shipToAttack->numberOfDestroyedDecks);
+
+	if (!(*specialTactic)) ChooseRandomSquare(x, y, playersField);
+	else if (*destroyedDecks < 2) TryDestroyingSecondDeck(x, y, playersField);
+	else
+	{
+		TacticToDestroyMoreThanTwoDecker(shipToAttack, playersField);
+
+		// Passing recieved coordinates to local x and y.
+		*x = shipToAttack->coordinatesToShoot.x;
+		*y = shipToAttack->coordinatesToShoot.y;
+	}
+}
+
 
 // Choosing square to shoot.
 void ChooseRandomSquare(int (*x), int (*y), SeaCell(*playersField)[11][11])
@@ -46,96 +71,15 @@ void ChooseRandomSquare(int (*x), int (*y), SeaCell(*playersField)[11][11])
 }
 
 
-
-// Making actions after getting info about result.
-// Returns true, if extra action given (shot damaged or killed ship).
-bool ContinueAction(int *x, int *y, ShotResult result, SeaCell(*playersField)[11][11], 
-					Player(*playersPointer), DamagedShipToBeDestroedByAI (*shipToDestroy))
-{
-	switch (result)
-	{
-		case miss:
-		{
-			// Put marker to reflect miss on player's field.
-			(*playersField)[*x][*y] = marked;
-
-			return false;
-		}
-		
-		case damaged:
-		{
-			AfterPlayersShipWasDamaged(*x, *y, shipToDestroy, playersField, playersPointer);
-			return true;
-		}
-
-		case killed:
-		{
-			AfterPlayersShipWasKilled(*x, *y, shipToDestroy, playersField, playersPointer);
-			return true;
-		}
-	}
-}
-
-// Fills some fields to prepare for next shot.
-void AfterPlayersShipWasDamaged(int x, int y, DamagedShipToBeDestroedByAI *shipToDestroy, 
-								SeaCell(*playersField)[11][11], Player *playersPointer)
-{
-	// Put marker to reflect killed deck on player's field.
-	(*playersField)[x][y] = kill;
-
-	// Removing destoyed deck.
-	playersPointer->count.totalNumOfPlSqares--;
-
-	// Shortcuts. 
-	DamagedCellsCoordinates *killedCell = &(shipToDestroy->shotShipDecksCoordinates);
-	int *nextDeck = &(shipToDestroy->numberOfDestroyedDecks);
-
-	// Saving coordinates of destroyed deck.
-	(*killedCell).x[(*nextDeck)] = x;
-	(*killedCell).y[(*nextDeck)] = y;
-
-	// Incrementing index to fill next deck coordinates of damaged ship.
-	(*nextDeck)++;
-
-	// Confirms that ship is 3- or 4-decker. Then new tactic is chosen.
-	if ((*nextDeck) == 2) tacticToDestroyMoreThanTwoDecker(shipToDestroy, playersField);
-
-	// Stops random square shooting.
-	(*shipToDestroy).specialTactic = true;
-}
-
-// Fills some data on field and cleans info about damaged ship.
-void AfterPlayersShipWasKilled(int x, int y, DamagedShipToBeDestroedByAI *shipToDestroy,
-							   SeaCell(*playersField)[11][11], Player *playersPointer)
-{
-	// Put marker to reflect killed deck on player's field.
-	(*playersField)[x][y] = kill;
-
-	// Removing destoyed deck.
-	playersPointer->count.totalNumOfPlSqares--;
-
-	// Clean intermidiate data of destroyed ship.
-	shipToDestroy->numberOfDestroyedDecks = 0;
-
-	// TODO: function, that will set 'marked' to all squares of 
-	// 'playersField' near destroyed ship, so AI ignores them. 
-
-	// Allows random square shooting.
-	shipToDestroy->specialTactic = false;
-
-}
-
-
-
 // AI makes deliberate choice of next square to shoot.
-void tryDestroyingSecondDeck(int *x, int *y, SeaCell(*playersField)[11][11])
+void TryDestroyingSecondDeck(int *x, int *y, SeaCell(*playersField)[11][11])
 {
 	// Confirms possibility to shoot on chosen side.
 	bool chosenSuccessfully = false;
 
 	// Randoming side to shoot.
 	int sideToShootChooser = 0;
-	
+
 	// Reapeat, until chosen cell to shoot is valid for a shot.
 	do
 	{
@@ -143,36 +87,35 @@ void tryDestroyingSecondDeck(int *x, int *y, SeaCell(*playersField)[11][11])
 
 		switch (sideToShootChooser)
 		{
-			case left:
-			{
-				chosenSuccessfully = tryChoosingLeft(x, *y, playersField);
-				break;
-			}
-
-			case right:
-			{
-				chosenSuccessfully = tryChoosingRight(x, *y, playersField);
-				break;
-			}
-
-			case top:
-			{
-				chosenSuccessfully = tryChoosingTop(*x, y, playersField);
-				break;
-			}
-
-			case bottom:
-			{
-				chosenSuccessfully = tryChoosingBottom(*x, y, playersField);
-				break;
-			}
+		case left:
+		{
+			chosenSuccessfully = TryChoosingLeft(x, *y, playersField);
+			break;
 		}
-	} 
-	while (!chosenSuccessfully);
-} 
+
+		case right:
+		{
+			chosenSuccessfully = TryChoosingRight(x, *y, playersField);
+			break;
+		}
+
+		case top:
+		{
+			chosenSuccessfully = TryChoosingTop(*x, y, playersField);
+			break;
+		}
+
+		case bottom:
+		{
+			chosenSuccessfully = TryChoosingBottom(*x, y, playersField);
+			break;
+		}
+		}
+	} while (!chosenSuccessfully);
+}
 
 // Checking if AI's next square to shoot can be LEFT from previous.
-bool tryChoosingLeft(int *x, int y, SeaCell(*playersField)[11][11])
+bool TryChoosingLeft(int *x, int y, SeaCell(*playersField)[11][11])
 {
 	// Checks if coordinate is out of bound, so we do not shoot beyond field.
 	if ((*x) <= lowerFieldBound) return false;
@@ -190,7 +133,7 @@ bool tryChoosingLeft(int *x, int y, SeaCell(*playersField)[11][11])
 }
 
 // Checking if AI's next square to shoot can be RIGHT from previous.
-bool tryChoosingRight(int *x, int y, SeaCell(*playersField)[11][11])
+bool TryChoosingRight(int *x, int y, SeaCell(*playersField)[11][11])
 {
 	// Checks if coordinate is out of bound, so we do not shoot beyond field.
 	if ((*x) >= upperFieldBound) return false;
@@ -208,7 +151,7 @@ bool tryChoosingRight(int *x, int y, SeaCell(*playersField)[11][11])
 }
 
 // Checking if AI's next square to shoot can be TOP from previous.
-bool tryChoosingTop(int x, int *y, SeaCell(*playersField)[11][11])
+bool TryChoosingTop(int x, int *y, SeaCell(*playersField)[11][11])
 {
 	// Checks if coordinate is out of bound, so we do not shoot beyond field.
 	if ((*y) <= lowerFieldBound) return false;
@@ -226,7 +169,7 @@ bool tryChoosingTop(int x, int *y, SeaCell(*playersField)[11][11])
 }
 
 // Checking if AI's next square to shoot can be BOTTOM from previous.
-bool tryChoosingBottom(int x, int *y, SeaCell(*playersField)[11][11])
+bool TryChoosingBottom(int x, int *y, SeaCell(*playersField)[11][11])
 {
 	// Checks if coordinate is out of bound, so we do not shoot beyond field.
 	if ((*y) >= upperFieldBound) return false;
@@ -244,73 +187,72 @@ bool tryChoosingBottom(int x, int *y, SeaCell(*playersField)[11][11])
 }
 
 
-
 // Chooses new cells to shoot, considering that ship has more than two decks.
-void tacticToDestroyMoreThanTwoDecker(DamagedShipToBeDestroedByAI *shipToDestroy, SeaCell(*playersField)[11][11])
+void TacticToDestroyMoreThanTwoDecker(DamagedShipToBeDestroedByAI *shipToAttack, SeaCell(*playersField)[11][11])
 {
 	// Shortcuts for two first damaged decks's X coordinates.
-	int *x0 = &(shipToDestroy->shotShipDecksCoordinates.x[0]);
-	int x1 = shipToDestroy->shotShipDecksCoordinates.x[1];
+	int *x0 = &(shipToAttack->shotShipDecksCoordinates.x[0]);
+	int x1 = shipToAttack->shotShipDecksCoordinates.x[1];
 
 	// Checks if ship is set horizontally or vertically
-	if (*x0 != x1) HorizontalShot(shipToDestroy, playersField);
-	else VerticalShot(shipToDestroy, playersField);
+	if (*x0 != x1) HorizontalShot(shipToAttack, playersField);
+	else VerticalShot(shipToAttack, playersField);
 }
 
 // Chooses to shoot left or right.
-void HorizontalShot(DamagedShipToBeDestroedByAI *shipToDestroy, SeaCell(*playersField)[11][11])
+void HorizontalShot(DamagedShipToBeDestroedByAI *shipToAttack, SeaCell(*playersField)[11][11])
 {
 	// Left = 0 and right = 1 in 'SideToShoot' enum.
 	int leftOrRightChooser = rand() % 2;
 
 	switch (leftOrRightChooser)
 	{
-		case left:
-		{
-			checkLeftShotPossibility(shipToDestroy, playersField);
-			break;
-		}
-		case right:
-		{
-			checkRightShotPossibility(shipToDestroy, playersField);
-			break;
-		}
+	case left:
+	{
+		CheckLeftShotPossibility(shipToAttack, playersField);
+		break;
+	}
+	case right:
+	{
+		CheckRightShotPossibility(shipToAttack, playersField);
+		break;
+	}
 	}
 }
 
 // Chooses to shoot top or bottom.
-void VerticalShot(DamagedShipToBeDestroedByAI *shipToDestroy, SeaCell(*playersField)[11][11])
+void VerticalShot(DamagedShipToBeDestroedByAI *shipToAttack, SeaCell(*playersField)[11][11])
 {
 	// Top = 2 and right = 3 in 'SideToShoot' enum.
 	int topOrBottomChoser = rand() % 2 + 2;
 
 	switch (topOrBottomChoser)
 	{
-		case top:
-		{
-			checkTopShotPossibility(shipToDestroy, playersField);
-			break;
-		}
-		case bottom:
-		{
-			checkBottomShotPossibility(shipToDestroy, playersField);
-			break;
-		}
+	case top:
+	{
+		CheckTopShotPossibility(shipToAttack, playersField);
+		break;
+	}
+	case bottom:
+	{
+		CheckBottomShotPossibility(shipToAttack, playersField);
+		break;
+	}
 	}
 }
 
 // Checks left side shot possibility. 
 // If unable to shoot left, sets to shoot right.
-void checkLeftShotPossibility(DamagedShipToBeDestroedByAI *shipToDestroy, SeaCell(*playersField)[11][11])
+void CheckLeftShotPossibility(DamagedShipToBeDestroedByAI *shipToAttack, SeaCell(*playersField)[11][11])
 {
 	// Shortcuts for coordinates to shoot.
-	int *tryX = &(shipToDestroy->coordinatesToShoot.x);
-	int *tryY = &(shipToDestroy->coordinatesToShoot.y);
+	int *tryX = &(shipToAttack->coordinatesToShoot.x);
+	int *tryY = &(shipToAttack->coordinatesToShoot.y);
 
 	// Setting starting values on first damaged deck's coordinates,
 	// so we can search for other possible decks locations from it.
-	*tryX = shipToDestroy->shotShipDecksCoordinates.x[0];
-	*tryY = shipToDestroy->shotShipDecksCoordinates.y[0];
+	*tryX = shipToAttack->shotShipDecksCoordinates.x[0];
+	*tryY = shipToAttack->shotShipDecksCoordinates.y[0];
 
 	// Keeps temporarily unchecked for possibility of shot cell.
 	SeaCell cellToShoot = empty;
@@ -321,31 +263,31 @@ void checkLeftShotPossibility(DamagedShipToBeDestroedByAI *shipToDestroy, SeaCel
 		// Checks for bound, so we do not shoot out of field.
 		if (*tryX > lowerFieldBound) (*tryX)--;
 		// Left side is near bound, so we can shoot only to the right.
-		else 
-		{ 
-			checkRightShotPossibility(shipToDestroy, playersField); 
-			return; 
+		else
+		{
+			CheckRightShotPossibility(shipToAttack, playersField);
+			return;
 		}
 
 		cellToShoot = (*playersField)[*tryX][*tryY];
 	} while (cellToShoot == kill);
 
 	// Left side is marked, so we can shoot only to the right.
-	if (cellToShoot == marked) checkRightShotPossibility(shipToDestroy, playersField);
+	if (cellToShoot == marked) CheckRightShotPossibility(shipToAttack, playersField);
 }
 
 // Checks right side shot possibility. 
 // If unable to shoot right, sets to shoot left.
-void checkRightShotPossibility(DamagedShipToBeDestroedByAI *shipToDestroy, SeaCell(*playersField)[11][11])
+void CheckRightShotPossibility(DamagedShipToBeDestroedByAI *shipToAttack, SeaCell(*playersField)[11][11])
 {
 	// Shortcuts for coordinates to shoot.
-	int *tryX = &(shipToDestroy->coordinatesToShoot.x);
-	int *tryY = &(shipToDestroy->coordinatesToShoot.y);
+	int *tryX = &(shipToAttack->coordinatesToShoot.x);
+	int *tryY = &(shipToAttack->coordinatesToShoot.y);
 
 	// Setting starting values on first damaged deck's coordinates,
 	// so we can search for other possible decks locations from it.
-	*tryX = shipToDestroy->shotShipDecksCoordinates.x[0];
-	*tryY = shipToDestroy->shotShipDecksCoordinates.y[0];
+	*tryX = shipToAttack->shotShipDecksCoordinates.x[0];
+	*tryY = shipToAttack->shotShipDecksCoordinates.y[0];
 
 	// Keeps temporarily unchecked for possibility of shot cell.
 	SeaCell cellToShoot = empty;
@@ -358,7 +300,7 @@ void checkRightShotPossibility(DamagedShipToBeDestroedByAI *shipToDestroy, SeaCe
 		// Left side is near bound, so we can shoot only to the right.
 		else
 		{
-			checkLeftShotPossibility(shipToDestroy, playersField);
+			CheckLeftShotPossibility(shipToAttack, playersField);
 			return;
 		}
 
@@ -366,21 +308,21 @@ void checkRightShotPossibility(DamagedShipToBeDestroedByAI *shipToDestroy, SeaCe
 	} while (cellToShoot == kill);
 
 	// Right side is marked, so we can shoot only to the left.
-	if (cellToShoot == marked) checkLeftShotPossibility(shipToDestroy, playersField);
+	if (cellToShoot == marked) CheckLeftShotPossibility(shipToAttack, playersField);
 }
 
 // Checks top side shot possibility. 
 // If unable to shoot top, sets to shoot bottom.
-void checkTopShotPossibility(DamagedShipToBeDestroedByAI *shipToDestroy, SeaCell(*playersField)[11][11])
+void CheckTopShotPossibility(DamagedShipToBeDestroedByAI *shipToAttack, SeaCell(*playersField)[11][11])
 {
 	// Shortcuts for coordinates to shoot.
-	int *tryX = &(shipToDestroy->coordinatesToShoot.x);
-	int *tryY = &(shipToDestroy->coordinatesToShoot.y);
+	int *tryX = &(shipToAttack->coordinatesToShoot.x);
+	int *tryY = &(shipToAttack->coordinatesToShoot.y);
 
 	// Setting starting values on first damaged deck's coordinates,
 	// so we can search for other possible decks locations from it.
-	*tryX = shipToDestroy->shotShipDecksCoordinates.x[0];
-	*tryY = shipToDestroy->shotShipDecksCoordinates.y[0];
+	*tryX = shipToAttack->shotShipDecksCoordinates.x[0];
+	*tryY = shipToAttack->shotShipDecksCoordinates.y[0];
 
 	// Keeps temporarily unchecked for possibility of shot cell.
 	SeaCell cellToShoot = empty;
@@ -393,7 +335,7 @@ void checkTopShotPossibility(DamagedShipToBeDestroedByAI *shipToDestroy, SeaCell
 		// Top side is near bound, so we can shoot only to the bottom.
 		else
 		{
-			checkBottomShotPossibility(shipToDestroy, playersField);
+			CheckBottomShotPossibility(shipToAttack, playersField);
 			return;
 		}
 
@@ -401,21 +343,21 @@ void checkTopShotPossibility(DamagedShipToBeDestroedByAI *shipToDestroy, SeaCell
 	} while (cellToShoot == kill);
 
 	// Top side is marked, so we can shoot only to the bottom.
-	if (cellToShoot == marked) checkBottomShotPossibility(shipToDestroy, playersField);
+	if (cellToShoot == marked) CheckBottomShotPossibility(shipToAttack, playersField);
 }
 
 // Checks bottom side shot possibility. 
 // If unable to shoot bottom, sets to shoot top.
-void checkBottomShotPossibility(DamagedShipToBeDestroedByAI *shipToDestroy, SeaCell(*playersField)[11][11])
+void CheckBottomShotPossibility(DamagedShipToBeDestroedByAI *shipToAttack, SeaCell(*playersField)[11][11])
 {
 	// Shortcuts for coordinates to shoot.
-	int *tryX = &(shipToDestroy->coordinatesToShoot.x);
-	int *tryY = &(shipToDestroy->coordinatesToShoot.y);
+	int *tryX = &(shipToAttack->coordinatesToShoot.x);
+	int *tryY = &(shipToAttack->coordinatesToShoot.y);
 
 	// Setting starting values on first damaged deck's coordinates,
 	// so we can search for other possible decks locations from it.
-	*tryX = shipToDestroy->shotShipDecksCoordinates.x[0];
-	*tryY = shipToDestroy->shotShipDecksCoordinates.y[0];
+	*tryX = shipToAttack->shotShipDecksCoordinates.x[0];
+	*tryY = shipToAttack->shotShipDecksCoordinates.y[0];
 
 	// Keeps temporarily unchecked for possibility of shot cell.
 	SeaCell cellToShoot = empty;
@@ -428,7 +370,7 @@ void checkBottomShotPossibility(DamagedShipToBeDestroedByAI *shipToDestroy, SeaC
 		// Bottom side is near bound, so we can shoot only to the top.
 		else
 		{
-			checkTopShotPossibility(shipToDestroy, playersField);
+			CheckTopShotPossibility(shipToAttack, playersField);
 			return;
 		}
 
@@ -436,5 +378,85 @@ void checkBottomShotPossibility(DamagedShipToBeDestroedByAI *shipToDestroy, SeaC
 	} while (cellToShoot == kill);
 
 	// Bottom side is marked, so we can shoot only to the top.
-	if (cellToShoot == marked) checkRightShotPossibility(shipToDestroy, playersField);
+	if (cellToShoot == marked) CheckRightShotPossibility(shipToAttack, playersField);
 }
+
+
+
+// Making actions after getting info about result.
+// Returns true, if extra action given (shot damaged or killed ship).
+bool ContinueAction(int *x, int *y, ShotResult result, SeaCell(*playersField)[11][11], 
+					Player(*playersPointer), DamagedShipToBeDestroedByAI (*shipToAttack))
+{
+	switch (result)
+	{
+		case miss:
+		{
+			// Put marker to reflect miss on player's field.
+			(*playersField)[*x][*y] = marked;
+
+			return false;
+		}
+		
+		case damaged:
+		{
+			AfterPlayersShipWasDamaged(*x, *y, shipToAttack, playersField, playersPointer);
+			return true;
+		}
+
+		case killed:
+		{
+			AfterPlayersShipWasKilled(*x, *y, shipToAttack, playersField, playersPointer);
+			return true;
+		}
+	}
+}
+
+// Fills some fields to prepare for next shot.
+void AfterPlayersShipWasDamaged(int x, int y, DamagedShipToBeDestroedByAI *shipToAttack, 
+								SeaCell(*playersField)[11][11], Player *playersPointer)
+{
+	// Put marker to reflect killed deck on player's field.
+	(*playersField)[x][y] = kill;
+
+	// Removing destoyed deck.
+	playersPointer->count.totalNumOfPlSquares--;
+
+	// Shortcuts. 
+	DamagedCellsCoordinates *killedCell = &(shipToAttack->shotShipDecksCoordinates);
+	int *nextDeck = &(shipToAttack->numberOfDestroyedDecks);
+
+	// Saving coordinates of destroyed deck.
+	(*killedCell).x[(*nextDeck)] = x;
+	(*killedCell).y[(*nextDeck)] = y;
+
+	// Incrementing index to fill next deck coordinates of damaged ship.
+	(*nextDeck)++;
+
+	// Stops random square shooting.
+	(*shipToAttack).specialTactic = true;
+}
+
+// Fills some data on field and cleans info about damaged ship.
+void AfterPlayersShipWasKilled(int x, int y, DamagedShipToBeDestroedByAI *shipToAttack,
+							   SeaCell(*playersField)[11][11], Player *playersPointer)
+{
+	// Put marker to reflect killed deck on player's field.
+	(*playersField)[x][y] = kill;
+
+	// Removing destoyed deck.
+	playersPointer->count.totalNumOfPlSquares--;
+
+	// Clean intermidiate data of destroyed ship.
+	shipToAttack->numberOfDestroyedDecks = 0;
+
+	// TODO: function, that will set 'marked' to all squares of 
+	// 'playersField' near destroyed ship, so AI ignores them. 
+
+	// Allows random square shooting.
+	shipToAttack->specialTactic = false;
+
+}
+
+
+
