@@ -7,7 +7,6 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include "MainLogic.h"
 #include "AI.h"
 
 int main()
@@ -19,11 +18,11 @@ int main()
 	SeaCell(*enemysField)[11][11] = &enemysBattleSea;
 	Stage gameStage = menu;
 
-	// Modified player's field. It helps AI to shoot more efficiently.
-	// It puts 'marked' on fields near killed decks, so AI won't shoot on them. 
-	SeaCell specialPlayersFieldForAI[11][11];
+	// Struct used by AI to save data about attacked ship.
+	// TODO: initialize shipToAttack's fields other way.
+	DamagedShipToBeDestroedByAI shipToAttack;
 
-	// Used by AI. True, if enemy's ship was wounded and 
+	// Used by AI. True, if enemy's ship was damaged and 
 	// next target square should be specially chosen.
 	bool specialTactic = false;
 
@@ -46,7 +45,7 @@ int main()
 	player.count.totalNumOfPlSqares = 20;
 	ai.count.totalNumOfPlSqares = 20;
 	//играем
-	if (Playing(playersField, enemysField, playersPointer, aisPointer, &specialPlayersFieldForAI, &specialTactic))
+	if (Playing(playersField, enemysField, playersPointer, aisPointer, &shipToAttack))
 	{
 		system("cls");
 		printf("You win!\n");
@@ -367,14 +366,14 @@ void Repaint(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11])
 	printf("\nCurrent actions:\n\nPress \"esc\" to exit or \n");
 }
 //стадия игры
-bool Playing(SeaCell(*playerField)[11][11], SeaCell(*enemyField)[11][11], Player(*playersPointer), 
-			 Player(*aisPointer), SeaCell(*specialPlayersFieldForAI)[11][11], bool *specialTactic)
+bool Playing(SeaCell(*playersField)[11][11], SeaCell(*enemyField)[11][11], Player(*playersPointer), 
+			 Player(*aisPointer), DamagedShipToBeDestroedByAI *shipToAttack)
 {
 	do 
 	{
 		char charX, charY;
 		system("cls");
-		Repaint(playerField, enemyField);
+		Repaint(playersField, enemyField);
 		printf("Enter x coordinate for shoot\n");
 		do
 		{
@@ -408,7 +407,7 @@ bool Playing(SeaCell(*playerField)[11][11], SeaCell(*enemyField)[11][11], Player
 				(*enemyField)[x][y] = marked;
 				break;
 			}
-			case wounded:
+			case damaged:
 			case killed:
 			{
 				(*enemyField)[x][y] = kill;
@@ -421,9 +420,7 @@ bool Playing(SeaCell(*playerField)[11][11], SeaCell(*enemyField)[11][11], Player
 		// AI's turn
 		if ((*aisPointer).count.totalNumOfPlSqares > 0)
 		{
-			//BOTS TURN(PLACE YOUR CODE HERE)
-			TurnOfAI(playerField, specialPlayersFieldForAI, playersPointer, specialTactic);
-			//END OF THE BOTS TURN
+			TurnOfAI(playersField, playersPointer, shipToAttack);
 		}
 		else
 		{
@@ -476,7 +473,7 @@ ShotResult ShootingChecker(int *x, int *y, SeaCell(*field)[11][11], Player(*play
 					}
 					else
 					{
-						return wounded;
+						return damaged;
 					}
 				}
 			}
