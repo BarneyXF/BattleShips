@@ -15,6 +15,16 @@ int main()
 	// Creating battle fields and players
 	SeaCell playersBattleSea[11][11];
 	SeaCell enemysBattleSea[11][11];
+	Stage gameStage = menu;
+
+	// Struct used by AI to save data about attacked ship.
+	// TODO: initialize shipToAttack's fields other way.
+	DamagedShipToBeDestroedByAI shipToAttack;
+
+	// Used by AI. True, if enemy's ship was damaged and 
+	// next target square should be specially chosen.
+	bool specialTactic = false;
+
 	Player player, ai;
 
 	// Initializing fields
@@ -29,7 +39,6 @@ int main()
 
 	player.count.totalNumOfPlSqares = totalNumOfSqares;
 	ai.count.totalNumOfPlSqares = totalNumOfSqares;
-
 	if (Playing(&playersBattleSea, &enemysBattleSea, &player, &ai))
 	{
 		system("cls");
@@ -333,16 +342,16 @@ void Repaint(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11])
 	Print(field, enemyField);
 	printf("\nCurrent actions:\n\nPress \"esc\" to exit or \n");
 }
-// Main action 
-bool Playing(SeaCell(*playerField)[11][11], SeaCell(*enemyField)[11][11], Player(*playersPointer), Player(*aisPointer))
+
+bool Playing(SeaCell(*playersField)[11][11], SeaCell(*enemyField)[11][11], Player(*playersPointer), 
+			 Player(*aisPointer), DamagedShipToBeDestroedByAI *shipToAttack)
 {
 	ShotResult result = none;
 	do 
 	{
 		char charX, charY;
 		system("cls");
-		Repaint(playerField, enemyField);
-
+		Repaint(playersField, enemyField);
 		printf("Enter x coordinate for shoot\n");
 		if (!GetNum(&charX, Left_Border, Right_Border))
 		{
@@ -384,6 +393,7 @@ bool Playing(SeaCell(*playerField)[11][11], SeaCell(*enemyField)[11][11], Player
 				_getch();
 				continue;
 			}
+			case damaged:
 			case killed:
 			{
 				(*enemyField)[x][y] = kill;
@@ -400,11 +410,7 @@ bool Playing(SeaCell(*playerField)[11][11], SeaCell(*enemyField)[11][11], Player
 		// AI's turn
 		if ((*aisPointer).count.totalNumOfPlSqares > 0)
 		{
-			// TODO: We need to know the result of bot's shot to print it on the screen!
-
-			//BOTS TURN(PLACE YOUR CODE HERE)
-			turnOfAI(playerField, playersPointer);
-			//END OF THE BOTS TURN
+			TurnOfAI(playersField, playersPointer, shipToAttack);
 		}
 		else
 		{
