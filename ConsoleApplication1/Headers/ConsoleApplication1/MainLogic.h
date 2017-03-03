@@ -1,12 +1,10 @@
 #pragma once
 
-#define Left_Border '0'
-#define Right_BorderOfAlign '1'
-#define Right_Border '9'
-#define Free_Cell ". "
-#define Ship_Cell "s "
-#define Miss_Cell "o "
-#define Killed_Cell "x "
+
+
+
+// Console's handle to change text's color.
+
 
 const unsigned short numOf4Ships = 1;
 const unsigned short numOf3Ships = 2;
@@ -17,9 +15,10 @@ const unsigned short totalNumOfSqares = 20;
 const int lowerFieldBound = 0;
 const int upperFieldBound = 9;
 
+
 enum ShipType
 {
-	null = 0, patrol = 1, destroyer = 2, cruiser = 3, carrier = 4
+	null, patrol, destroyer, cruiser, carrier
 };
 
 enum SeaCell
@@ -29,12 +28,12 @@ enum SeaCell
 
 enum Stage
 {
-	menu = 0, placing = 1, playing = 2, end = 3
+	menu, placing, playing, end
 };
 
 enum ShotResult
 {
-	miss = 0, killed = 1, damaged = 2, none = 3, repeatedShot = 4
+	miss, killed, damaged, none, repeatedShot
 };
 
 typedef struct
@@ -65,7 +64,12 @@ typedef struct
 	Ship ship[10];
 }Player;
 
-
+// We need it to separate console and placing and playing functions(contains information to be showed).
+enum InformatioForPlayerToBeShowed
+{
+	currentAction, xCoordinate, xIs, yIs, missed, repeat, damage, killing, yourTurn, AIturn, AIInfo,
+	xForPlace, yForPlace, placeMode, checking, wrong, wait
+};
 
 /*
  *
@@ -111,19 +115,15 @@ typedef struct
  */
  
 
-void PlacingShips(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11], Player(*playersPointer), Player(*aisPointer));
+bool PlacingShips(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11], Player(*playersPointer), Player(*aisPointer), char random);
 bool Placing(int x, int y, int placingMode, int numOfDecks, int shipCounter, 
 			 SeaCell(*field)[11][11], Player(*playersPointer));
+bool PlacingCheck(int x, int y, SeaCell(*field)[11][11], Player(*player), int totalNumOfDecks, int xAugment, int yAugment);
 void FillShipInfo(SeaCell(*field)[11][11], Player(*pointer), int x, int y, int shipsCounter,
 				  int totalNumOfDecks, int xAugment, int yAugment);
-bool PlacingCheck(int x, int y, SeaCell(*field)[11][11], Player(*player), int totalNumOfDecks, int xAugment, int yAugment);
-void Print(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11]);
 void ChooseRandomSquare(int(*x), int(*y), SeaCell(*playersField)[11][11]);
-void Print(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11]);
-void Repaint(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11]);
 bool Playing(SeaCell(*playersField)[11][11], SeaCell(*enemyField)[11][11], Player(*playersPointer),
 			 Player(*aisPointer), DamagedShipToBeDestroedByAI *shipToAttack);
 ShotResult ShootingChecker(int *x, int *y, SeaCell(*field)[11][11], Player(*playersPointer));
 ShotResult CompareCoord(int *x, int *y, SeaCell(*field)[11][11], Player(*playersPointer), int numOfShip, int numOfDeck);
-bool GetNum(char *symbol, char leftBorder, char rightBorder);
 bool Check(char symbol, char leftBorder, char rightBorder);

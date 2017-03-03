@@ -24,6 +24,9 @@
     <ClCompile Include="MainLogic.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ConsoleLogic.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Headers\ConsoleApplication1\MainLogic.h">
@@ -33,6 +36,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="targetver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Headers\ConsoleApplication1\ConsoleLogic.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
