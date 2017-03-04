@@ -23,7 +23,7 @@ enum ShipType
 
 enum SeaCell
 {
-	empty, ship, kill, marked
+	empty, ship, kill, marked, markForBot
 };
 
 enum Stage
@@ -84,6 +84,7 @@ typedef struct
 
 }Coordinates;
 
+// Looks like ShipCell.
 // Keeps data about location of destroyed decks of currently attacked ship.
 typedef struct
 {

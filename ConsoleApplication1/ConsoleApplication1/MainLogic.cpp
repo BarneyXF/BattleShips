@@ -16,7 +16,6 @@
 // Main function.
 int main()
 {
-	//system("mode 55, 25");
 	Menu();
     return 0;
 }
@@ -123,7 +122,6 @@ bool PlacingShips(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11], Player
 	ClearInfoScreen();
 	RepaintCell(0, 15, "", infoMode);
 	PlacingInformation(wait, '\0', 0, 0);
-	//Repaint(field, enemysfield);
 
 	// AI placing ships
 	numOfShipsOfType = 0;
@@ -321,9 +319,7 @@ bool Playing(SeaCell(*playersField)[11][11], SeaCell(*enemyField)[11][11], Playe
 		{
 			case repeatedShot:
 			{
-				//(*enemyField)[x][y] = kill;
 				PlayInformation(repeat, '\0');
-				//RepaintCell(x, y, Miss_Cell, fieldMode);
 				break;
 			}
 			case miss:
@@ -339,8 +335,9 @@ bool Playing(SeaCell(*playersField)[11][11], SeaCell(*enemyField)[11][11], Playe
 			{
 				(*enemyField)[x][y] = kill;
 				(*aisPointer).count.totalNumOfPlSquares--;
-				PlayInformation(damage, '\0');
 				RepaintCell(x + 12, y, Killed_Cell, playMode);
+				RepaintCell(16, 23, "", infoMode);
+				PlayInformation(damage, '\0');	
 				continue;
 			}
 
@@ -348,8 +345,9 @@ bool Playing(SeaCell(*playersField)[11][11], SeaCell(*enemyField)[11][11], Playe
 			{
 				(*enemyField)[x][y] = kill;
 				(*aisPointer).count.totalNumOfPlSquares--;
-				PlayInformation(killing, '\0');
 				RepaintCell(x + 12, y, Killed_Cell, playMode);
+				RepaintCell(16, 23, "", infoMode);
+				PlayInformation(killing, '\0');
 				if ((*aisPointer).count.totalNumOfPlSquares == 0)
 				{
 					return true;

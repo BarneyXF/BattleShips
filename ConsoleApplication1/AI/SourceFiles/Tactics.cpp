@@ -39,7 +39,7 @@ void ChooseRandomSquare(int(*x), int(*y), SeaCell(*playersField)[11][11])
 		*x = rand() % 10;
 		*y = rand() % 10;
 		squareToShoot = (*playersField)[*x][*y];
-	} while ((squareToShoot == marked) || (squareToShoot == kill));
+	} while ((squareToShoot == marked) || (squareToShoot == kill) || (squareToShoot == markForBot));
 }
 
 

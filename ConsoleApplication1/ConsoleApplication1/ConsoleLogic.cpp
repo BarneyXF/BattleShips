@@ -127,7 +127,7 @@ void Print(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11])
 		for (int i = 0; i < 10; i++)
 		{
 			switch ((*field)[i][j])
-			{
+			{	
 			case empty:
 			{
 				SetConsoleTextAttribute(hConsole, CellsColor);
@@ -140,6 +140,7 @@ void Print(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11])
 				printf(Ship_Cell);
 				break;
 			}
+			case markForBot:
 			case marked:
 			{
 				SetConsoleTextAttribute(hConsole, MissedColor);
@@ -161,6 +162,7 @@ void Print(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11])
 			SetConsoleTextAttribute(hConsole, InfoColor);
 			switch ((*enemyField)[i][j])
 			{
+
 			case empty:
 			{
 				SetConsoleTextAttribute(hConsole, CellsColor);
@@ -170,8 +172,8 @@ void Print(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11])
 			case ship:
 			{
 				// TODO: CHANGE TO FREE_CELL
-				SetConsoleTextAttribute(hConsole, ShipsColor);
-				printf(Ship_Cell);
+				SetConsoleTextAttribute(hConsole, CellsColor);
+				printf(Free_Cell);
 				break;
 			}
 			case marked:
@@ -281,7 +283,7 @@ void PlayInformation(InformatioForPlayerToBeShowed infoCode, char charToBeShowed
 	}
 	case yIs:
 	{
-		printf("Y coordinate is: %c\n\nShot result is: ", charToBeShowed);
+		printf("Y coordinate is: %c\nShot result is: ", charToBeShowed);
 		break;
 	}
 	case missed:

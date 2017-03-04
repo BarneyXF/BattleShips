@@ -9,4 +9,5 @@ void AfterPlayersShipWasDamaged(int x, int y, DamagedShipToBeDestroedByAI *shipT
 void AfterPlayersShipWasKilled(int x, int y, DamagedShipToBeDestroedByAI *shipToAttack,
 							   SeaCell(*playersField)[11][11], Player *playersPointer);
 
-
+void SetMarkedSellsAroundKilledShip(int x, int y, DamagedShipToBeDestroedByAI *shipToAttack,
+	SeaCell(*playersField)[11][11], Player *playersPointer);

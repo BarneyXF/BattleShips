@@ -5,6 +5,7 @@
 #include <string>
 #include <conio.h>
 
+#include "../../Headers/ConsoleApplication1/ConsoleLogic.h"
 #include "../../Headers/AI/AI.h"
 #include "../../Headers/AI/Tactics.h"
 #include "../../Headers/AI/ActionsAfterShot.h"
