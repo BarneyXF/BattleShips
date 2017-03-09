@@ -140,7 +140,6 @@ void Print(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11])
 				printf(Ship_Cell);
 				break;
 			}
-			case markForBot:
 			case marked:
 			{
 				SetConsoleTextAttribute(hConsole, MissedColor);

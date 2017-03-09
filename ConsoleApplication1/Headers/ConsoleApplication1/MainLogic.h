@@ -23,7 +23,7 @@ enum ShipType
 
 enum SeaCell
 {
-	empty, ship, kill, marked, markForBot
+	empty, ship, kill, marked
 };
 
 enum Stage

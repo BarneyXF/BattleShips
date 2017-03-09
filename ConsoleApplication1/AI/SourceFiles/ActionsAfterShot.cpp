@@ -97,7 +97,7 @@ void SetMarkedSellsAroundKilledShip(int x, int y, DamagedShipToBeDestroedByAI *s
 			{
 				for (int squaresY = 0; squaresY < 3; squaresY++)
 				{
-					(*playersField)[x - 1 + squaresX][y - 1 + squaresY] = markForBot;
+					(*playersField)[x - 1 + squaresX][y - 1 + squaresY] = marked;
 				}
 			}
 		}
