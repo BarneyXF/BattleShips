@@ -1,13 +1,25 @@
 #include "Header.h"
 
-DemoApp::DemoApp():
+template <typename T>
+inline void SafeRelease(T *&p)
+{
+	if (nullptr != p)
+	{
+		p->Release();
+		p = nullptr;
+	}
+}
+
+DemoApp::DemoApp() :
+
 
 	m_hwnd(NULL),
-		m_pDirect2dFactory(NULL),
-		m_pRenderTarget(NULL),
-		m_pLightSlateGrayBrush(NULL),
-		m_pCornflowerBlueBrush(NULL)
+	m_pDirect2dFactory(NULL),
+	m_pRenderTarget(NULL),
+	m_pLightSlateGrayBrush(NULL),
+	m_pCornflowerBlueBrush(NULL)
 {
+	
 };
 
 DemoApp::~DemoApp()
@@ -18,6 +30,7 @@ DemoApp::~DemoApp()
 	SafeRelease(&m_pCornflowerBlueBrush);
 
 };
+
 
 void DemoApp::RunMessageLoop()
 {
@@ -63,12 +76,13 @@ HRESULT DemoApp::Initialize()
 		// to create its own windows.
 		m_pDirect2dFactory->GetDesktopDpi(&dpiX, &dpiY);
 
+		//WS_OVERLAPPED|WS_CAPTION| WS_SYSMENU |WS_THICKFRAME |WS_MINIMIZEBOX 
 
 		// Create the window.
 		m_hwnd = CreateWindow(
 			"D2DDemoApp",
-			"Direct2D Demo App",
-			WS_OVERLAPPEDWINDOW,
+			"Admiral Myrzabeck",
+			WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU  | WS_MINIMIZEBOX,
 			CW_USEDEFAULT,
 			CW_USEDEFAULT,
 			static_cast<UINT>(ceil(640.f * dpiX / 96.f)),
@@ -119,12 +133,53 @@ int WINAPI WinMain(
 	return 0;
 }
 
+HRESULT DemoApp::CreatePlayWnd()
+{
+	FLOAT dpiX, dpiY;
+	HRESULT hr;
+
+	// The factory returns the current system DPI. This is also the value it will use
+	// to create its own windows.
+	m_pDirect2dFactory->GetDesktopDpi(&dpiX, &dpiY);
+
+	play_hwnd = CreateWindow(
+		"D2DDemoApp",
+		"Admiral Myrzabeck",
+		WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
+		CW_USEDEFAULT,
+		CW_USEDEFAULT,
+		static_cast<UINT>(ceil(640.f * dpiX / 96.f)),
+		static_cast<UINT>(ceil(480.f * dpiY / 96.f)),
+		NULL,
+		NULL,
+		HINST_THISCOMPONENT,
+		this
+		);
+	hr = play_hwnd ? S_OK : E_FAIL;
+	if (SUCCEEDED(hr))
+	{
+		ShowWindow(play_hwnd, SW_SHOWNORMAL);
+		UpdateWindow(play_hwnd);
+	}
+	return hr;
+};
+
 HRESULT DemoApp::CreateDeviceIndependentResources()
 {
 	HRESULT hr = S_OK;
 
 	// Create a Direct2D factory.
 	hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &m_pDirect2dFactory);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = DWriteCreateFactory(								//Ñîçäàþ ôàáðèêó äëÿ ðèñîâàíèÿ
+			DWRITE_FACTORY_TYPE_SHARED,
+			__uuidof(IDWriteFactory),
+			reinterpret_cast<IUnknown**>(&m_pWriteFactory)
+			);
+	};
+
 
 	return hr;
 }
@@ -168,6 +223,21 @@ HRESULT DemoApp::CreateDeviceResources()
 				&m_pCornflowerBlueBrush
 				);
 		}
+
+		if (SUCCEEDED(hr))
+		{
+
+			hr = m_pWriteFactory->CreateTextFormat(					// Çäåñü çàäàþ øðèôò è ïàðàìåòðû äëÿ òåêñòà
+				L"Comic Sans",
+				NULL,
+				DWRITE_FONT_WEIGHT_REGULAR,
+				DWRITE_FONT_STYLE_NORMAL,
+				DWRITE_FONT_STRETCH_NORMAL,
+				80.0f,
+				L"en-us",
+				&m_pWriteTextFormat
+				);
+		}
 	}
 
 	return hr;
@@ -180,11 +250,12 @@ void DemoApp::DiscardDeviceResources()
 	SafeRelease(&m_pCornflowerBlueBrush);
 }
 
+
+/*ÝÒÀ ØÓÒÊÀ ÎÒÑËÅÆÈÂÀÅÒ ÂÑÅ ÑÎÁÛÒÈß, ÏÐÎÈÑÕÎÄßÙÈÅ Ñ ÎÊÍÎÌ, ÊÀÊ ÒÎ: ÑÎÇÄÀÍÈÅ, ÇÀÊÐÛÒÈÅ, ÐÅÑÀÉÇ, ÍÀÆÀÒÈÅ ÊËÀÂÈØ ÈÒÄ ÈÒÏ			*/	
+/*CALLBACK - ýòó ôóíêöèþ âûçûâàåò ñàìà ÎÑ, à ìû çàäàåì òî, ÷òî õîòèì ïîëó÷èòü îò ïðîãðàììû*/
 LRESULT CALLBACK DemoApp::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	LRESULT result = 0;
-
-
 
 	if (message == WM_CREATE)
 	{
@@ -196,6 +267,8 @@ LRESULT CALLBACK DemoApp::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
 			GWLP_USERDATA,
 			PtrToUlong(pDemoApp)
 			);
+
+		
 
 		result = 1;
 	}
@@ -217,9 +290,8 @@ LRESULT CALLBACK DemoApp::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
 			{
 				UINT width = LOWORD(lParam);
 				UINT height = HIWORD(lParam);
-				
+				pDemoApp->CreateD2DBitmapFromFile(pDemoApp->m_hwnd);
 
-			
 				pDemoApp->OnResize(width, height);
 			}
 			result = 0;
@@ -242,6 +314,42 @@ LRESULT CALLBACK DemoApp::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
 			result = 0;
 			wasHandled = true;
 			break;
+
+			/*ÇÄÅÑÜ ÎÒÑËÅÆÈÂÀÞÒÑß ÍÀÆÀÒÈß ËÅÂÎÉ ÊËÀÂÈØÈ ÌÛØÊÈ,  È ÂÑÅ ÏÅÐÅÕÎÄÛ ÒÎÆÅ ÒÓÒ*/
+			case WM_LBUTTONDOWN:
+			{
+				float x, y;
+				x = LOWORD(lParam);
+				y = HIWORD(lParam);
+				
+				switch (pDemoApp->Status_of_game_window_instanse)
+				{
+					case Menu:
+					{
+						if (HitInButton(x, y, pDemoApp->menu_button))
+						{
+							pDemoApp->Status_of_game_window_instanse = Playfield;
+							pDemoApp->OnRender();
+							ValidateRect(hwnd, NULL);
+						}
+						break;
+					}
+
+					case Playfield:
+					{
+
+						break;
+					}
+				}
+
+
+				
+				break;
+			}
+			result = 0;
+			wasHandled = true;
+			break;
+
 
 			case WM_DESTROY:
 			{
@@ -282,76 +390,22 @@ HRESULT DemoApp::OnRender()
 		int height = static_cast<int>(rtSize.height);
 		int x_center = width / 2;
 		int y_center = height / 2;
-		int width_of_cell = height*0.7 / 10;
-		
-		DrawField(x_center/2, y_center, width_of_cell);
-		DrawField(x_center*3 / 2, y_center, width_of_cell);
-		
+		int width_of_cell =20;
 
-
-
-
-
-
-
-
-
-
-
-		/*
-		for (int x = 0; x < width; x += 10)
+		switch (Status_of_game_window_instanse)
 		{
-			c
+			case Menu:
+			{
+				DrawMenu(width, height);
+				break;
+
+			}
+			case Playfield:
+			{
+				DrawPlayField(x_center, y_center, width_of_cell);
+				break;
+			}
 		}
-
-		for (int y = 0; y < height; y += 10)
-		{
-			m_pRenderTarget->DrawLine(
-				D2D1::Point2F(0.0f, static_cast<FLOAT>(y)),
-				D2D1::Point2F(rtSize.width, static_cast<FLOAT>(y)),
-				m_pLightSlateGrayBrush,
-				0.5f
-				);
-		}
-
-		// Draw two rectangles.
-		D2D1_RECT_F rectangle1 = D2D1::RectF(
-			rtSize.width / 2 - 50.0f,
-			rtSize.height / 2 - 50.0f,
-			rtSize.width / 2 + 50.0f,
-			rtSize.height / 2 + 50.0f
-			);
-
-		D2D1_RECT_F rectangle2 = D2D1::RectF(
-			rtSize.width / 2 - 100.0f,
-			rtSize.height / 2 - 100.0f,
-			rtSize.width / 2 + 100.0f,
-			rtSize.height / 2 + 100.0f
-			);
-
-		// Draw a filled rectangle.
-		m_pRenderTarget->FillRectangle(&rectangle1, m_pLightSlateGrayBrush);
-
-		// Draw the outline of a rectangle.
-		m_pRenderTarget->DrawRectangle(&rectangle2, m_pCornflowerBlueBrush);
-		
-
-		D2D1_RECT_F rectangle1 = D2D1::RectF(
-			rtSize.width / 2 - 50.0f,
-			rtSize.height / 2 - 50.0f,
-			rtSize.width / 2 + 50.0f,
-			rtSize.height / 2 + 50.0f
-			);
-
-		m_pRenderTarget->FillRectangle(&rectangle1, m_pLightSlateGrayBrush);
-
-		*/
-		
-
-
-
-
-
 
 
 		hr = m_pRenderTarget->EndDraw();
@@ -379,27 +433,8 @@ void DemoApp::OnResize(UINT width, UINT height)
 void  DemoApp::DrawField(int x_center, int y_center, int width_of_cell)
 {
 
-	
 	HRESULT hr = S_OK;
-	if (SUCCEEDED(hr))
-	{
-		hr= DWriteCreateFactory(
-			DWRITE_FACTORY_TYPE_SHARED,
-			__uuidof(IDWriteFactory),
-			reinterpret_cast<IUnknown**>(&m_pWriteFactory)
-			);
 
-		hr = m_pWriteFactory->CreateTextFormat(
-			L"Gabriola",
-			NULL,
-			DWRITE_FONT_WEIGHT_REGULAR,
-			DWRITE_FONT_STYLE_NORMAL,
-			DWRITE_FONT_STRETCH_NORMAL,
-			40.0f,
-			L"en-us",
-			&m_pWriteTextFormat
-			);
-	}
 
 	ID2D1SolidColorBrush* black;
 
@@ -408,44 +443,7 @@ void  DemoApp::DrawField(int x_center, int y_center, int width_of_cell)
 		&black
 		);
 
-
-	foo f;
-	
-
-	std::wstring s = std::to_wstring(f.h);		/* s.c_str()*/
-
-	const WCHAR * wch = s.c_str();
-
-	/*std::wstring ws(wch);
-	std::string s = std::string(ws.begin(), ws.end());*/
-
-	int len = (int)s.length();
-
-
-
-
-
-	D2D1_RECT_F rectangle2 = D2D1::RectF(
-		10.0f, 50.0f, 200.0f, 80.0f
-		);
-
-	m_pRenderTarget ->DrawTextA(
-		wch, 
-		len , 
-		m_pWriteTextFormat, 
-		&rectangle2,
-		black 
-		/*, D2D1_DRAW_TEXT_OPTIONS_NONE,
-		DWRITE_MEASURING_MODE_NATURAL*/
-		);
-
-
-	m_pRenderTarget->DrawRectangle(&rectangle2, black);
-
-
-	
-
-
+	/*===================================ÐÈÑÓÞ ÊÂÀÄÐÀÒÍÎÅ ÏÎËÅ 10Õ10 ==========================================*/
 	for (int i = -5; i < 6; i++)
 	{
 
@@ -465,4 +463,320 @@ void  DemoApp::DrawField(int x_center, int y_center, int width_of_cell)
 			0.5f
 			);
 	}
+
+
+	/*
+*/
+};
+
+void DemoApp::DrawMenu(int width, int height)
+{
+	// Ïðÿìîóãîëüíèê ãëàâíîé êíîïêè ìåíþ
+	 menu_button= D2D1::RectF(		
+		0.2*width, 0.45*height, 0.8*width, 0.55*height
+		);
+
+	 // ðèñóþ êíîïêó (ïðÿìîóã)
+	m_pRenderTarget->DrawRectangle(
+		&menu_button,
+		m_pLightSlateGrayBrush
+		);
+
+
+	// Ýòî òåêñò è äëèíà òåêñòà â êíîïêå
+	wchar_t * wch = L"New game";
+	int len = std::wcslen(wch);
+	// 
+
+
+	IDWriteTextFormat* MenuTextFormat;
+	/* Ñîçäàþ øðèôò äëÿ íàäïèñè íà êíîïêå */
+	m_pWriteFactory->CreateTextFormat(
+		L"Algerian",
+		NULL,
+		DWRITE_FONT_WEIGHT_REGULAR,
+		DWRITE_FONT_STYLE_NORMAL,
+		DWRITE_FONT_STRETCH_NORMAL,
+		(float) (menu_button.bottom- menu_button.top)*0.5 ,
+		L"en-us",
+		&MenuTextFormat
+		);
+
+	/* ðèñóþ ñàì òåêñò, */
+	m_pRenderTarget->DrawTextA(
+		wch,	/*òåêñòîâàÿ ïåðåìåííàÿ*/
+		len,	/*åå äëèíà*/
+		MenuTextFormat,	/*ðàíåå ñîçäàííûé ñòèëü òåêñòà*/
+		&menu_button,	/*ññûëêà íà ïðÿìîãóëüíèê, â êîòîðîì ðàçìåñòèòüñÿ òåêñò*/
+		m_pLightSlateGrayBrush	/*ýêçåìïëÿð êèñòè îïðåäåëåííîãî öâåòà, õç êàêîãî*/
+		);
+
+};
+
+bool DemoApp::HitInButton(float x, float y, D2D1_RECT_F rect)
+{
+	return (x > rect.left && x < rect.right && y<rect.bottom && y > rect.top);	/*áàíàëüíàÿ ïðîâåðêà íà âõîæäåíèå êîîðäèíàò*/
 }
+
+
+
+/*==============ÝÒÀ ÂÅÙÜ ÍÅ ÐÀÁÎÒÀÅÒ È ÍÅ ÈÑÏÎËÜÇÓÅÒÑß, ÍÎ ß ÅÅ ÍÅ ÓÄÀËßÞ, ÏÎÒÎÌÓ ×ÒÎ ÒÀÊ ÍÀÄÎ!=================*/
+HRESULT DemoApp::CreateD2DBitmapFromFile(HWND hWnd)
+{
+	HRESULT hr = S_OK;
+
+	WCHAR szFileName[MAX_PATH]=L"1.jpg";
+
+	// Step 1: Create the open dialog box and locate the image file
+
+	//if (LocateImageFile(hWnd, szFileName, ARRAYSIZE(szFileName)))
+	//{
+
+		// Step 2: Decode the source image
+
+		// Create a decoder
+		IWICBitmapDecoder *pDecoder = nullptr;
+
+		hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+
+		hr = CoCreateInstance(
+			_uuidof(IWICImagingFactory)
+			/*CLSID_WICImagingFactory*/,
+			nullptr,
+			CLSCTX_INPROC_SERVER,
+			IID_PPV_ARGS(&m_pIWICFactory)
+			);
+		/*
+		hr = m_pIWICFactory->CreateDecoderFromFilename(
+			szFileName,                      // Image to be decoded
+			NULL,                         // Do not prefer a particular vendor
+			GENERIC_READ,                    // Desired read access to the file
+			WICDecodeMetadataCacheOnDemand,  // Cache metadata when needed
+			&pDecoder                        // Pointer to the decoder
+			);*/
+
+		// Retrieve the first frame of the image from the decoder
+		IWICBitmapFrameDecode *pFrame = nullptr;
+
+		if (SUCCEEDED(hr))
+		{
+			hr = pDecoder->GetFrame(0, &pFrame);
+		}
+
+		//Step 3: Format convert the frame to 32bppPBGRA
+		if (SUCCEEDED(hr))
+		{
+			SafeRelease(m_pConvertedSourceBitmap);
+			hr = m_pIWICFactory->CreateFormatConverter(&m_pConvertedSourceBitmap);
+		}
+
+		if (SUCCEEDED(hr))
+		{
+			hr = m_pConvertedSourceBitmap->Initialize(
+				pFrame,                          // Input bitmap to convert
+				GUID_WICPixelFormat32bppPBGRA,   // Destination pixel format
+				WICBitmapDitherTypeNone,         // Specified dither pattern
+				nullptr,                         // Specify a particular palette 
+				0.f,                             // Alpha threshold
+				WICBitmapPaletteTypeCustom       // Palette translation type
+				);
+		}
+
+		//Step 4: Create render target and D2D bitmap from IWICBitmapSource
+		if (SUCCEEDED(hr))
+		{
+			hr = CreateDeviceResources();
+		}
+
+		if (SUCCEEDED(hr))
+		{
+			// Need to release the previous D2DBitmap if there is one
+			SafeRelease(m_pD2DBitmap);
+			hr = m_pRenderTarget->CreateBitmapFromWicBitmap(m_pConvertedSourceBitmap, nullptr, &m_pD2DBitmap);
+		}
+
+		SafeRelease(pDecoder);
+		SafeRelease(pFrame);
+	
+
+	return hr;
+}
+
+
+HRESULT DemoApp::LoadBitmapFromFile(
+	ID2D1RenderTarget *pRenderTarget,
+	IWICImagingFactory *pIWICFactory,
+	PCWSTR uri,/*
+	UINT destinationWidth,
+	UINT destinationHeight,*/
+	ID2D1Bitmap **ppBitmap
+	)
+{
+	IWICBitmapDecoder *pDecoder = NULL;
+	IWICBitmapFrameDecode *pSource = NULL;
+	IWICStream *pStream = NULL;
+	IWICFormatConverter *pConverter = NULL;
+	IWICBitmapScaler *pScaler = NULL;
+
+	
+
+	HRESULT hr = pIWICFactory->CreateDecoderFromFilename(
+		uri,
+		NULL,
+		GENERIC_READ,
+		WICDecodeMetadataCacheOnLoad,
+		&pDecoder
+		);
+
+	if (SUCCEEDED(hr))
+	{
+		// Create the initial frame.
+		hr = pDecoder->GetFrame(0, &pSource);
+	}
+
+	if (SUCCEEDED(hr))
+	{
+
+		// Convert the image format to 32bppPBGRA
+		// (DXGI_FORMAT_B8G8R8A8_UNORM + D2D1_ALPHA_MODE_PREMULTIPLIED).
+		hr = pIWICFactory->CreateFormatConverter(&pConverter);
+
+	}
+
+
+	if (SUCCEEDED(hr))
+	{
+		hr = pConverter->Initialize(
+			pSource,
+			GUID_WICPixelFormat32bppPBGRA,
+			WICBitmapDitherTypeNone,
+			NULL,
+			0.f,
+			WICBitmapPaletteTypeMedianCut
+			);
+
+	}
+	if (SUCCEEDED(hr))
+	{
+
+		// Create a Direct2D bitmap from the WIC bitmap.
+		hr = pRenderTarget->CreateBitmapFromWicBitmap(
+			pConverter,
+			NULL,
+			ppBitmap
+			);
+	}
+
+	SafeRelease(&pDecoder);
+	SafeRelease(&pSource);
+	SafeRelease(&pStream);
+	SafeRelease(&pConverter);
+	SafeRelease(&pScaler);
+
+	return hr;
+}
+
+
+void DemoApp::DrawPlayField(int x_center, int y_center, int width_of_cell)
+{
+	DrawField(x_center / 2, y_center, width_of_cell);
+	DrawField(x_center * 3 / 2, y_center, width_of_cell);
+}
+
+
+
+
+/*==================================ÇÄÅÑÜ ß ÏÛÒÀÞÑÜ ÂÑÒÀÂÈÒÜ ÊÀÐÒÈÍÊÓ Â ÎÊÍÎ=================================================================*/
+
+
+/*	if (SUCCEEDED(hr))
+{
+hr = m_pRenderTarget->CreateBitmap(D2D1::SizeU(),
+nullptr,
+0,
+D2D1::BitmapProperties(),
+&m_pBitmap
+);
+}
+
+
+if (SUCCEEDED(hr))
+{
+CoCreateInstance(
+CLSID_WICImagingFactory,
+nullptr,
+CLSCTX_INPROC_SERVER,
+IID_PPV_ARGS(&m_pImagingFactory)
+);
+}
+PCWSTR pict = L"1.jpg";
+
+if (SUCCEEDED(hr))
+{
+LoadBitmapFromFile(m_pRenderTarget, m_pImagingFactory, pict, &m_pBitmap);
+}
+if (SUCCEEDED(hr))
+{
+m_pRenderTarget->DrawBitmap(
+m_pBitmap, &rectangle2, 50.0f, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, &rectangle2
+);
+}*/
+/*==================================================================================================================================================*/
+
+
+
+
+
+/*
+for (int x = 0; x < width; x += 10)
+{
+c
+}
+
+for (int y = 0; y < height; y += 10)
+{
+m_pRenderTarget->DrawLine(
+D2D1::Point2F(0.0f, static_cast<FLOAT>(y)),
+D2D1::Point2F(rtSize.width, static_cast<FLOAT>(y)),
+m_pLightSlateGrayBrush,
+0.5f
+);
+}
+
+// Draw two rectangles.
+D2D1_RECT_F rectangle1 = D2D1::RectF(
+rtSize.width / 2 - 50.0f,
+rtSize.height / 2 - 50.0f,
+rtSize.width / 2 + 50.0f,
+rtSize.height / 2 + 50.0f
+);
+
+D2D1_RECT_F rectangle2 = D2D1::RectF(
+rtSize.width / 2 - 100.0f,
+rtSize.height / 2 - 100.0f,
+rtSize.width / 2 + 100.0f,
+rtSize.height / 2 + 100.0f
+);
+
+// Draw a filled rectangle.
+m_pRenderTarget->FillRectangle(&rectangle1, m_pLightSlateGrayBrush);
+
+// Draw the outline of a rectangle.
+m_pRenderTarget->DrawRectangle(&rectangle2, m_pCornflowerBlueBrush);
+
+
+D2D1_RECT_F rectangle1 = D2D1::RectF(
+rtSize.width / 2 - 50.0f,
+rtSize.height / 2 - 50.0f,
+rtSize.width / 2 + 50.0f,
+rtSize.height / 2 + 50.0f
+);
+
+m_pRenderTarget->FillRectangle(&rectangle1, m_pLightSlateGrayBrush);
+
+*/
+
+
+
+
+
