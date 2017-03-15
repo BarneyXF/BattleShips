@@ -238,6 +238,21 @@ HRESULT DemoApp::CreateDeviceResources()
 				&m_pWriteTextFormat
 				);
 		}
+
+		if (SUCCEEDED(hr))
+		{
+			/* Создаю шрифт для надписи на кнопке */
+			hr = m_pWriteFactory->CreateTextFormat(
+				L"Algerian",
+				NULL,
+				DWRITE_FONT_WEIGHT_REGULAR,
+				DWRITE_FONT_STYLE_NORMAL,
+				DWRITE_FONT_STRETCH_NORMAL,
+				FONT_SIZE,
+				L"en-us",
+				&MenuTextFormat
+				);
+		}
 	}
 
 	return hr;
@@ -321,23 +336,29 @@ LRESULT CALLBACK DemoApp::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
 				float x, y;
 				x = LOWORD(lParam);
 				y = HIWORD(lParam);
-				
+				  
 				switch (pDemoApp->Status_of_game_window_instanse)
 				{
 					case Menu:
 					{
 						if (HitInButton(x, y, pDemoApp->menu_button))
 						{
-							pDemoApp->Status_of_game_window_instanse = Playfield;
+							pDemoApp->Status_of_game_window_instanse = Preparing;
 							pDemoApp->OnRender();
 							ValidateRect(hwnd, NULL);
 						}
 						break;
 					}
 
+					case Preparing:
+					{
+						
+						break;
+					}
+
 					case Playfield:
 					{
-
+						
 						break;
 					}
 				}
@@ -386,8 +407,8 @@ HRESULT DemoApp::OnRender()
 		D2D1_SIZE_F rtSize = m_pRenderTarget->GetSize();
 
 		// Draw a grid background.
-		int width = static_cast<int>(rtSize.width);
-		int height = static_cast<int>(rtSize.height);
+		width = static_cast<int>(rtSize.width);
+		height = static_cast<int>(rtSize.height);
 		int x_center = width / 2;
 		int y_center = height / 2;
 		int width_of_cell =20;
@@ -400,11 +421,20 @@ HRESULT DemoApp::OnRender()
 				break;
 
 			}
+			
+			case Preparing:
+			{
+				DrawPreparing(x_center, y_center, width_of_cell);
+				break;
+			}
+
 			case Playfield:
 			{
 				DrawPlayField(x_center, y_center, width_of_cell);
 				break;
 			}
+
+
 		}
 
 
@@ -482,36 +512,29 @@ void DemoApp::DrawMenu(int width, int height)
 		m_pLightSlateGrayBrush
 		);
 
-
-	// Это текст и длина текста в кнопке
+	// Это текст в кнопке
 	wchar_t * wch = L"New game";
-	int len = std::wcslen(wch);
-	// 
 
-
-	IDWriteTextFormat* MenuTextFormat;
-	/* Создаю шрифт для надписи на кнопке */
-	m_pWriteFactory->CreateTextFormat(
-		L"Algerian",
-		NULL,
-		DWRITE_FONT_WEIGHT_REGULAR,
-		DWRITE_FONT_STYLE_NORMAL,
-		DWRITE_FONT_STRETCH_NORMAL,
-		(float) (menu_button.bottom- menu_button.top)*0.5 ,
-		L"en-us",
-		&MenuTextFormat
-		);
-
-	/* рисую сам текст, */
-	m_pRenderTarget->DrawTextA(
-		wch,	/*текстовая переменная*/
-		len,	/*ее длина*/
-		MenuTextFormat,	/*ранее созданный стиль текста*/
-		&menu_button,	/*ссылка на прямогульник, в котором разместиться текст*/
-		m_pLightSlateGrayBrush	/*экземпляр кисти определенного цвета, хз какого*/
-		);
+	PrintText(wch, MenuTextFormat, menu_button, m_pCornflowerBlueBrush);
+	
 
 };
+
+void DemoApp::PrintText(wchar_t* text, IDWriteTextFormat* text_format, D2D1_RECT_F rect_for_text, ID2D1SolidColorBrush* brush)
+{
+
+	int text_lenght = std::wcslen(text);
+
+								/* рисую сам текст, */
+	m_pRenderTarget->DrawTextA(
+		text,					/*текстовая переменная*/
+		text_lenght,			/*ее длина*/
+		text_format,			/*ранее созданный стиль текста*/
+		&rect_for_text,			/*ссылка на прямогульник, в котором разместиться текст*/
+		brush					/*экземпляр кисти определенного цвета, хз какого*/
+		);
+}
+
 
 bool DemoApp::HitInButton(float x, float y, D2D1_RECT_F rect)
 {
@@ -682,6 +705,19 @@ void DemoApp::DrawPlayField(int x_center, int y_center, int width_of_cell)
 	DrawField(x_center / 2, y_center, width_of_cell);
 	DrawField(x_center * 3 / 2, y_center, width_of_cell);
 }
+
+void DemoApp::DrawPreparing(int x_center, int y_center, int width_of_cell)
+{
+	
+	D2D1_RECT_F TitleRect = D2D1::RectF(0.2*width, 0.1*height, 0.8*width, 0.3*height);
+	
+	PrintText(L"Расположите корабли", MenuTextFormat, TitleRect, m_pCornflowerBlueBrush);
+	
+	
+	DrawField(x_center * 3 / 2, y_center, width_of_cell);
+
+}
+
 
 
 
