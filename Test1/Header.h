@@ -58,7 +58,9 @@ EXTERN_C IMAGE_DOS_HEADER __ImageBase;
 #define HINST_THISCOMPONENT ((HINSTANCE)&__ImageBase)
 #endif
 
-#define FONT_SIZE 30.0f
+#define BIG_FONT_SIZE 30.0f
+#define SMALL_FONT_SIZE 12.0f
+#define GAP_BW_SHIPS_AND_TITLES 5
 
 
 
@@ -149,6 +151,7 @@ private:
 	IDWriteFactory* m_pWriteFactory;
 	IDWriteTextFormat* m_pWriteTextFormat;
 	IDWriteTextFormat* MenuTextFormat;
+	IDWriteTextFormat* SmallTextFormat;
 	
 	D2D1_RECT_F menu_button;
 

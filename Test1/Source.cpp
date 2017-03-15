@@ -248,9 +248,24 @@ HRESULT DemoApp::CreateDeviceResources()
 				DWRITE_FONT_WEIGHT_REGULAR,
 				DWRITE_FONT_STYLE_NORMAL,
 				DWRITE_FONT_STRETCH_NORMAL,
-				FONT_SIZE,
+				BIG_FONT_SIZE,
 				L"en-us",
 				&MenuTextFormat
+				);
+		}
+
+		if (SUCCEEDED(hr))
+		{
+			/* Ñîçäàþ øðèôò äëÿ îáû÷íûõ íàäïèñåé */
+			hr = m_pWriteFactory->CreateTextFormat(
+				L"Algerian",
+				NULL,
+				DWRITE_FONT_WEIGHT_REGULAR,
+				DWRITE_FONT_STYLE_NORMAL,
+				DWRITE_FONT_STRETCH_NORMAL,
+				SMALL_FONT_SIZE,
+				L"en-us",
+				&SmallTextFormat
 				);
 		}
 	}
@@ -266,7 +281,7 @@ void DemoApp::DiscardDeviceResources()
 }
 
 
-/*ÝÒÀ ØÓÒÊÀ ÎÒÑËÅÆÈÂÀÅÒ ÂÑÅ ÑÎÁÛÒÈß, ÏÐÎÈÑÕÎÄßÙÈÅ Ñ ÎÊÍÎÌ, ÊÀÊ ÒÎ: ÑÎÇÄÀÍÈÅ, ÇÀÊÐÛÒÈÅ, ÐÅÑÀÉÇ, ÍÀÆÀÒÈÅ ÊËÀÂÈØ ÈÒÄ ÈÒÏ			*/	
+/*ÝÒÀ ØÒÓÊÀ ÎÒÑËÅÆÈÂÀÅÒ ÂÑÅ ÑÎÁÛÒÈß, ÏÐÎÈÑÕÎÄßÙÈÅ Ñ ÎÊÍÎÌ, ÊÀÊ ÒÎ: ÑÎÇÄÀÍÈÅ, ÇÀÊÐÛÒÈÅ, ÐÅÑÀÉÇ, ÍÀÆÀÒÈÅ ÊËÀÂÈØ ÈÒÄ ÈÒÏ			*/	
 /*CALLBACK - ýòó ôóíêöèþ âûçûâàåò ñàìà ÎÑ, à ìû çàäàåì òî, ÷òî õîòèì ïîëó÷èòü îò ïðîãðàììû*/
 LRESULT CALLBACK DemoApp::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -301,6 +316,8 @@ LRESULT CALLBACK DemoApp::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
 		{
 			switch (message)
 			{
+				/* ÑÌÎÒÐÈ, ÂÎÂÀ, ÅÒÎ ÏÅÐÅÐÈÑÎÂÊÀ, ÒÓÒ ÌÛ ÐÅÀÃÈÐÓÅÌ ÍÀ ÈÇÌÅÍÅÍÈß ÐÀÇÌÅÐÎÂ ÎÊÍÀ*/
+				/*íàäî çàïèëèòü ìàêðîñ ñ ìàêñèìàëüíûì ðàçìåðîì îêíà è íàçâàòü åãî "TVOYA_MAMKA_SIZE" */
 			case WM_SIZE:
 			{
 				UINT width = LOWORD(lParam);
@@ -333,10 +350,12 @@ LRESULT CALLBACK DemoApp::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
 			/*ÇÄÅÑÜ ÎÒÑËÅÆÈÂÀÞÒÑß ÍÀÆÀÒÈß ËÅÂÎÉ ÊËÀÂÈØÈ ÌÛØÊÈ,  È ÂÑÅ ÏÅÐÅÕÎÄÛ ÒÎÆÅ ÒÓÒ*/
 			case WM_LBUTTONDOWN:
 			{
+				/*	ýòî êîîðäèíàòû òî÷êè, êóäà ùåëêíóëà ìûøêà		*/
 				float x, y;
 				x = LOWORD(lParam);
 				y = HIWORD(lParam);
 				  
+
 				switch (pDemoApp->Status_of_game_window_instanse)
 				{
 					case Menu:
@@ -371,7 +390,8 @@ LRESULT CALLBACK DemoApp::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
 			wasHandled = true;
 			break;
 
-
+			/*àäåêâàòíîå çàêðûòèå îêíà, áåç íåãî ïëîõî, æèòüÿ íå áóäåò*/
+			/*î÷åíü èíôîðìàòèâíûå êîììåíòàðèè*/
 			case WM_DESTROY:
 			{
 				PostQuitMessage(0);
@@ -391,6 +411,7 @@ LRESULT CALLBACK DemoApp::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
 	return result;
 }
 
+/*ýòà øòóêà îòâå÷àåò çà ïåðåðèñîâêó âñåÿ ïðèëàæåíÚÿ*/
 HRESULT DemoApp::OnRender()
 {
 	HRESULT hr = S_OK;
@@ -413,6 +434,7 @@ HRESULT DemoApp::OnRender()
 		int y_center = height / 2;
 		int width_of_cell =20;
 
+		/*çíàêîìûé ñâèò÷*/
 		switch (Status_of_game_window_instanse)
 		{
 			case Menu:
@@ -493,7 +515,7 @@ void  DemoApp::DrawField(int x_center, int y_center, int width_of_cell)
 			0.5f
 			);
 	}
-
+	/*==============================================================================================================*/
 
 	/*
 */
@@ -520,6 +542,9 @@ void DemoApp::DrawMenu(int width, int height)
 
 };
 
+/*äëÿ óïðîùåíèÿ ðàáîòû è çàïîìèíàíèÿ ìåíüøåãî îáúåìà åáëèâûõ ôîðìàòîâ åáëèâûõ ôóíêöèé
+, ÿ íàðåêàþ âàñ, íåò, íå òî, ÿ ñîçäàþ ôóíêöèþ, êîòîðàÿ â ÁÎËÅÅ ÏÎÍßÒÍÎÌ ÔÎÐÌÀÒÅ
+îáåñïå÷èâàåè âûâîä òåêñòà íà ýêðàí */
 void DemoApp::PrintText(wchar_t* text, IDWriteTextFormat* text_format, D2D1_RECT_F rect_for_text, ID2D1SolidColorBrush* brush)
 {
 
@@ -536,6 +561,7 @@ void DemoApp::PrintText(wchar_t* text, IDWriteTextFormat* text_format, D2D1_RECT
 }
 
 
+/*ñîáñíà, ïðî÷åðî÷êà íà íàæàòèå â ïðÿìîãóãîëüíèê, nothing else*/
 bool DemoApp::HitInButton(float x, float y, D2D1_RECT_F rect)
 {
 	return (x > rect.left && x < rect.right && y<rect.bottom && y > rect.top);	/*áàíàëüíàÿ ïðîâåðêà íà âõîæäåíèå êîîðäèíàò*/
@@ -699,7 +725,7 @@ HRESULT DemoApp::LoadBitmapFromFile(
 	return hr;
 }
 
-
+/*TODO: íàâåñòèòü ìàìêó Äàíèåëÿ*/
 void DemoApp::DrawPlayField(int x_center, int y_center, int width_of_cell)
 {
 	DrawField(x_center / 2, y_center, width_of_cell);
@@ -708,11 +734,33 @@ void DemoApp::DrawPlayField(int x_center, int y_center, int width_of_cell)
 
 void DemoApp::DrawPreparing(int x_center, int y_center, int width_of_cell)
 {
-	
+	/*ÐÅêòàíãë íàçâàíèÿ*/
 	D2D1_RECT_F TitleRect = D2D1::RectF(0.2*width, 0.1*height, 0.8*width, 0.3*height);
 	
-	PrintText(L"Ðàñïîëîæèòå êîðàáëè", MenuTextFormat, TitleRect, m_pCornflowerBlueBrush);
+	int x_quarter = x_center / 2;
+	/*Ðåêòàíãëû êîðàáëèêîâ äëÿ ðàññòàíîâêè*/
+	D2D1_RECT_F One_ship= D2D1::RectF(x_quarter -3.5*width_of_cell, y_center-width_of_cell, x_quarter - 2.5*width_of_cell, y_center);
+	D2D1_RECT_F Two_ship= D2D1::RectF(x_quarter - 1.5*width_of_cell, y_center - 2*width_of_cell, x_quarter - 0.5*width_of_cell, y_center);
+	D2D1_RECT_F Three_ship= D2D1::RectF(x_quarter + 1.5*width_of_cell, y_center - 3*width_of_cell, x_quarter + 0.5*width_of_cell, y_center);
+	D2D1_RECT_F Four_ship= D2D1::RectF(x_quarter + 3.5*width_of_cell, y_center - 4*width_of_cell, x_quarter + 2.5*width_of_cell, y_center);
+
+	D2D1_RECT_F Label1 = D2D1::RectF(One_ship.left, One_ship.bottom + GAP_BW_SHIPS_AND_TITLES, One_ship.left+width_of_cell, One_ship.bottom + GAP_BW_SHIPS_AND_TITLES+width_of_cell);
+	D2D1_RECT_F Label2 = D2D1::RectF(Two_ship.left, Two_ship.bottom + GAP_BW_SHIPS_AND_TITLES, Two_ship.left + width_of_cell, Two_ship.bottom + GAP_BW_SHIPS_AND_TITLES + width_of_cell);
+	D2D1_RECT_F Label3 = D2D1::RectF(Three_ship.left, Three_ship.bottom + GAP_BW_SHIPS_AND_TITLES, Three_ship.left + width_of_cell, Three_ship.bottom + GAP_BW_SHIPS_AND_TITLES + width_of_cell);
+	D2D1_RECT_F Label4 = D2D1::RectF(Four_ship.left, Four_ship.bottom + GAP_BW_SHIPS_AND_TITLES, Four_ship.left + width_of_cell, Four_ship.bottom + GAP_BW_SHIPS_AND_TITLES + width_of_cell);
+
 	
+	PrintText(L"Ðàñïîëîæèòå êîðàáëè", MenuTextFormat, TitleRect, m_pCornflowerBlueBrush);
+	PrintText(L"x1", SmallTextFormat, Label1, m_pCornflowerBlueBrush);
+	PrintText(L"x2", SmallTextFormat, Label2, m_pCornflowerBlueBrush);
+	PrintText(L"x3", SmallTextFormat, Label3, m_pCornflowerBlueBrush);
+	PrintText(L"x4", SmallTextFormat, Label4, m_pCornflowerBlueBrush);
+
+
+	m_pRenderTarget->FillRectangle(One_ship, m_pCornflowerBlueBrush);
+	m_pRenderTarget->FillRectangle(Two_ship, m_pCornflowerBlueBrush);
+	m_pRenderTarget->FillRectangle(Three_ship, m_pCornflowerBlueBrush);
+	m_pRenderTarget->FillRectangle(Four_ship, m_pCornflowerBlueBrush);
 	
 	DrawField(x_center * 3 / 2, y_center, width_of_cell);
 

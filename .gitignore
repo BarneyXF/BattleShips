@@ -6,3 +6,8 @@
 *.sdf
 *.opensdf
 /Test1/Debug/*
+.vs/Test1/v14/.suo
+Debug/Test1.ilk
+Debug/Test1.pdb
+Test1/Test1.vcxproj
+Test1/Test1.vcxproj.filters
