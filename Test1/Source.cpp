@@ -226,6 +226,33 @@ HRESULT DemoApp::CreateDeviceResources()
 
 		if (SUCCEEDED(hr))
 		{
+			// Create a blue brush.
+			hr = m_pRenderTarget->CreateSolidColorBrush(
+				D2D1::ColorF(D2D1::ColorF::Black),
+				&m_pBlack
+				);
+		}
+
+		if (SUCCEEDED(hr))
+		{
+			// Create a blue brush.
+			hr = m_pRenderTarget->CreateSolidColorBrush(
+				D2D1::ColorF(D2D1::ColorF::Green),
+				&m_pGreen
+				);
+		}
+
+		if (SUCCEEDED(hr))
+		{
+			// Create a blue brush.
+			hr = m_pRenderTarget->CreateSolidColorBrush(
+				D2D1::ColorF(D2D1::ColorF::Red),
+				&m_pRed
+				);
+		}
+
+		if (SUCCEEDED(hr))
+		{
 
 			hr = m_pWriteFactory->CreateTextFormat(					// Здесь задаю шрифт и параметры для текста
 				L"Comic Sans",
@@ -360,7 +387,13 @@ LRESULT CALLBACK DemoApp::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
 				{
 					case Menu:
 					{
-						if (HitInButton(x, y, pDemoApp->menu_button))
+						if (HitInButton(x, y, pDemoApp->SinglePlayer_button))
+						{
+							pDemoApp->Status_of_game_window_instanse = Preparing;
+							pDemoApp->OnRender();
+							ValidateRect(hwnd, NULL);
+						}
+						if (HitInButton(x, y, pDemoApp->MultiPlayer_button))
 						{
 							pDemoApp->Status_of_game_window_instanse = Preparing;
 							pDemoApp->OnRender();
@@ -371,7 +404,12 @@ LRESULT CALLBACK DemoApp::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
 					case Preparing:
 					{
-						
+						if (HitInButton(x, y, pDemoApp->Next_button))
+						{
+							pDemoApp->Status_of_game_window_instanse = Playfield;
+							pDemoApp->OnRender();
+							ValidateRect(hwnd, NULL);
+						}
 						break;
 					}
 
@@ -484,16 +522,7 @@ void DemoApp::OnResize(UINT width, UINT height)
 
 void  DemoApp::DrawField(int x_center, int y_center, int width_of_cell)
 {
-
 	HRESULT hr = S_OK;
-
-
-	ID2D1SolidColorBrush* black;
-
-	m_pRenderTarget->CreateSolidColorBrush(
-		D2D1::ColorF(D2D1::ColorF::Black),
-		&black
-		);
 
 	/*===================================РИСУЮ КВАДРАТНОЕ ПОЛЕ 10Х10 ==========================================*/
 	for (int i = -5; i < 6; i++)
@@ -503,7 +532,7 @@ void  DemoApp::DrawField(int x_center, int y_center, int width_of_cell)
 		m_pRenderTarget->DrawLine(
 			D2D1::Point2F(x_center - 5 * width_of_cell, static_cast<FLOAT>(y_center + i*width_of_cell)),
 			D2D1::Point2F(x_center + 5 * width_of_cell, static_cast<FLOAT>(y_center + i*width_of_cell)),
-			black,
+			m_pBlack,
 			0.5f
 			);
 
@@ -511,7 +540,7 @@ void  DemoApp::DrawField(int x_center, int y_center, int width_of_cell)
 		m_pRenderTarget->DrawLine(
 			D2D1::Point2F(x_center + i * width_of_cell, static_cast<FLOAT>(y_center + 5 * width_of_cell)),
 			D2D1::Point2F(x_center + i * width_of_cell, static_cast<FLOAT>(y_center - 5 * width_of_cell)),
-			black,
+			m_pBlack,
 			0.5f
 			);
 	}
@@ -523,22 +552,38 @@ void  DemoApp::DrawField(int x_center, int y_center, int width_of_cell)
 
 void DemoApp::DrawMenu(int width, int height)
 {
+
+	D2D1_POINT_2F point_single_left= D2D1::Point2F(0.25*width, 0.25*height);
+	D2D1_POINT_2F point_single_right = D2D1::Point2F(0.75*width, 0.45*height);
+
+	D2D1_POINT_2F point_mult_left = D2D1::Point2F(0.25*width, 0.5*height);
+	D2D1_POINT_2F point_mult_right = D2D1::Point2F(0.75*width, 0.7*height);
 	// Прямоугольник главной кнопки меню
-	 menu_button= D2D1::RectF(		
-		0.2*width, 0.45*height, 0.8*width, 0.55*height
+	SinglePlayer_button = D2D1::RectF(
+		point_single_left.x, point_single_left.y, point_single_right.x,  point_single_right.y
 		);
+	MultiPlayer_button = D2D1::RectF(
+		point_mult_left.x, point_mult_left.y, point_mult_right.x, point_mult_right.y
+		);
+
 
 	 // рисую кнопку (прямоуг)
 	m_pRenderTarget->DrawRectangle(
-		&menu_button,
+		&SinglePlayer_button,
+		m_pLightSlateGrayBrush
+		);
+
+	m_pRenderTarget->DrawRectangle(
+		&MultiPlayer_button,
 		m_pLightSlateGrayBrush
 		);
 
 	// Это текст в кнопке
-	wchar_t * wch = L"New game";
+	wchar_t * Single = L"Single Game";
+	wchar_t * Multi = L"Multi";
 
-	PrintText(wch, MenuTextFormat, menu_button, m_pCornflowerBlueBrush);
-	
+	PrintText(Single, MenuTextFormat, SinglePlayer_button, m_pCornflowerBlueBrush);
+	PrintText(Multi, MenuTextFormat, MultiPlayer_button, m_pCornflowerBlueBrush);
 
 };
 
@@ -749,6 +794,8 @@ void DemoApp::DrawPreparing(int x_center, int y_center, int width_of_cell)
 	D2D1_RECT_F Label3 = D2D1::RectF(Three_ship.left, Three_ship.bottom + GAP_BW_SHIPS_AND_TITLES, Three_ship.left + width_of_cell, Three_ship.bottom + GAP_BW_SHIPS_AND_TITLES + width_of_cell);
 	D2D1_RECT_F Label4 = D2D1::RectF(Four_ship.left, Four_ship.bottom + GAP_BW_SHIPS_AND_TITLES, Four_ship.left + width_of_cell, Four_ship.bottom + GAP_BW_SHIPS_AND_TITLES + width_of_cell);
 
+	 Next_button = D2D1::RectF(x_center, 3*y_center/2, 3*x_center, height);
+
 	
 	PrintText(L"Расположите корабли", MenuTextFormat, TitleRect, m_pCornflowerBlueBrush);
 	PrintText(L"x1", SmallTextFormat, Label1, m_pCornflowerBlueBrush);
@@ -761,6 +808,9 @@ void DemoApp::DrawPreparing(int x_center, int y_center, int width_of_cell)
 	m_pRenderTarget->FillRectangle(Two_ship, m_pCornflowerBlueBrush);
 	m_pRenderTarget->FillRectangle(Three_ship, m_pCornflowerBlueBrush);
 	m_pRenderTarget->FillRectangle(Four_ship, m_pCornflowerBlueBrush);
+
+	m_pRenderTarget->FillRectangle(Next_button, m_pBlack);
+	PrintText(L"NEXT", SmallTextFormat, Next_button, m_pGreen );
 	
 	DrawField(x_center * 3 / 2, y_center, width_of_cell);
 

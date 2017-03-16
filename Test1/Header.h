@@ -147,6 +147,10 @@ private:
 	ID2D1HwndRenderTarget* m_pRenderTarget;
 	ID2D1SolidColorBrush* m_pLightSlateGrayBrush;
 	ID2D1SolidColorBrush* m_pCornflowerBlueBrush;
+	ID2D1SolidColorBrush* m_pGreen;
+	ID2D1SolidColorBrush* m_pRed;
+	ID2D1SolidColorBrush* m_pBlack;
+
 
 	IDWriteFactory* m_pWriteFactory;
 	IDWriteTextFormat* m_pWriteTextFormat;
@@ -154,6 +158,9 @@ private:
 	IDWriteTextFormat* SmallTextFormat;
 	
 	D2D1_RECT_F menu_button;
+	D2D1_RECT_F SinglePlayer_button;
+	D2D1_RECT_F MultiPlayer_button;
+	D2D1_RECT_F Next_button;
 
 	ID2D1Bitmap            *m_pD2DBitmap;
 	IWICImagingFactory*		m_pIWICFactory;
