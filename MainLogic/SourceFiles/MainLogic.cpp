@@ -1,9 +1,9 @@
 // Header files.
 #include "stdafx.h"
-#include "../Headers/Logic/MainLogic.h"
-#include "../Headers/Console/ConsoleLogic.h"
-#include "../Headers/AI/AI.h"
-#include "../Headers/ServerClient/ClientServerPart.h"
+#include "../../Headers/Logic/MainLogic.h"
+#include "../../Headers/Console/ConsoleLogic.h"
+#include "../../Headers/AI/AI.h"
+#include "../../Headers/ServerClient/ClientServerPart.h"
 
 /*
 *

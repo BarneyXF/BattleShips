@@ -1,7 +1,7 @@
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #include "../../Headers/Console/ConsoleLogic.h"
-#include "../../Logic/stdafx.h"
+#include "../../MainLogic/SourceFiles/stdafx.h"
 
 
 HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -14,7 +14,7 @@ HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 *
 */
 
-// TODO: SOME REPAIRS
+// TODO: repair exiting, vertical/horizontal
 
 // Main menu of the game.	Console func.
 void Menu()
@@ -37,7 +37,6 @@ void Menu()
 			}
 		}
 		printf("\t BattleShips.\n\n");
-		//printf("Press one of this buttons to choose option:\n\n");
 		printf(" 1 ) Play vs AI.\n");
 		printf(" 2 ) Create server.\n");
 		printf(" 3 ) Connect to server.\n");
@@ -53,92 +52,63 @@ void Menu()
 		}
 		// Creating players.
 		Player player;
-		// TODO: REPLACE WITH SWITCH
 		int battleResult;
-		if (choise == '1')
+		switch (choise)
 		{
-			Player ai;
-			// Struct used by AI to save data about attacked ship.
-			DamagedShipToBeDestroedByAI shipToAttack;
-
-			system("cls");
-			printf("\tBattleShips.\n\nDo you want to place ships by yourself(if no, we will use randomizer)?\n(y/n)\n");
-			char random;
-			srand(time(0));
-			do
+			case '1':
 			{
-				if (!GetNum(&random, 'n', 'y'))
+				Player ai;
+				// Struct used by AI to save data about attacked ship.
+				DamagedShipToBeDestroedByAI shipToAttack;
+				char random;
+				srand(time(0));
+				UseRandom(&random);
+				if (!PlacingShips(&playersBattleSea, &enemysBattleSea, &player, &ai, random, true))
 				{
 					system("cls");
-					printf("Good Bye! Have a nice day!\nPress any keyboard button to continue...\n");
-					// Waiting for players reaction
-					_getch();
-					return;
+					continue;
 				}
-			} while ((random != 'n') && (random != 'y'));
 
-			//gameStage = 
-			if (!PlacingShips(&playersBattleSea, &enemysBattleSea, &player, &ai, random, true))
-			{
-				system("cls");
-				continue;
-			}
-
-			// Initializing number of squares(decks) of each player.
-			player.count.totalNumOfPlSquares = totalNumOfSqares;
-			ai.count.totalNumOfPlSquares = totalNumOfSqares;
-			sockaddr_in k = {1, 1};
-			SOCKET n;
-			if (Playing(&playersBattleSea, &enemysBattleSea, &player, &ai, &shipToAttack, true, &n, &k))
-			{
-				system("cls");
-				SetConsoleTextAttribute(hConsole, ShipsColor);
-				printf("You win!\n");
-
-			}
-			else
-			{
-				system("cls");
-				SetConsoleTextAttribute(hConsole, DamagedColor);
-				printf("You loose(fi vam)!\n");
-			}
-			SetConsoleTextAttribute(hConsole, InfoColor);
-			printf("\nPress any keyboard button to continue...\n");
-			// Waiting for players reaction
-			_getch();
-			system("cls");
-		}
-		else if(choise == '2')
-		{
-			char random = 'n';
-			Player enemy;
-			Server(&playersBattleSea, &enemysBattleSea, &player, &enemy, &random, &battleResult);
-			//CreateServer(&playersBattleSea, &enemysBattleSea, &player, &enemy, &random, &battleResult);
-			//system("cls");
-			//printf("\tWaiting for another player...\n\n");
-			
-			/*do
-			{
-				if (!GetNum(&random, 'n', 'y'))
+				// Initializing number of squares(decks) of each player.
+				player.count.totalNumOfPlSquares = totalNumOfSqares;
+				ai.count.totalNumOfPlSquares = totalNumOfSqares;
+				sockaddr_in k = { 1, 1 };
+				SOCKET n;
+				if (Playing(&playersBattleSea, &enemysBattleSea, &player, &ai, &shipToAttack, true, &n, &k))
 				{
 					system("cls");
-					printf("Good Bye! Have a nice day!\nPress any keyboard button to continue...\n");
-					// Waiting for players reaction
-					_getch();
-					return;
+					SetConsoleTextAttribute(hConsole, ShipsColor);
+					printf("You win!\n");
+
 				}
-			} while ((random != 'n') && (random != 'y'));*/
-			
-			 //we need to get this info from player
-						  //play vs player(ask ip etc)
-		}
-		else
-		{
-			char random = 'n';// TODO: REPLACE WITH QUESTION		
-			Player enemy;
-			//Connect();
-			Client(&playersBattleSea, &enemysBattleSea, &player, &enemy, &random, &battleResult);
-			//CreateConnection(&playersBattleSea, &enemysBattleSea, &player, &enemy, &random, &battleResult);
+				else
+				{
+					system("cls");
+					SetConsoleTextAttribute(hConsole, DamagedColor);
+					printf("You loose(fi vam)!\n");
+				}
+				SetConsoleTextAttribute(hConsole, InfoColor);
+				printf("\nPress any keyboard button to continue...\n");
+				// Waiting for players reaction
+				_getch();
+				system("cls");
+				break;
+			}
+			case '2':
+			{
+				// TODO: PLACE IN SEPARATE THREAD.
+				char random = 'n';
+				Player enemy;
+				Server(&playersBattleSea, &enemysBattleSea, &player, &enemy, &random, &battleResult);
+				break;
+			}
+			case '3':
+			{
+				char random = 'n';
+				Player enemy;
+				Client(&playersBattleSea, &enemysBattleSea, &player, &enemy, &random, &battleResult);
+				break;
+			}
 		}
 		system("cls");
 		if (battleResult == 1)
@@ -154,6 +124,24 @@ void Menu()
 		// Waiting for players reaction
 		_getch();
 	} while (true);
+}
+
+// We need yhis func to call from ServerClient project.
+void UseRandom(char *random)
+{
+	system("cls");
+	printf("\tBattleShips.\n\nDo you want to place ships by yourself(if no, we will use randomizer)?\n(y/n)\n");
+	do
+	{
+		if (!GetNum(random, 'n', 'y'))
+		{
+			system("cls");
+			printf("Good Bye! Have a nice day!\nPress any keyboard button to continue...\n");
+			// Waiting for players reaction
+			_getch();
+			return;
+		}
+	} while ((*random != 'n') && (*random != 'y'));
 }
 
 // Printing fields on screen.	Console func.
@@ -492,14 +480,8 @@ void ClientInformation(InformatioForPlayerToBeShowed infoCode, char (*charToGett
 		}
 		case getIP:
 		{
-			printf("Enter ip-address:\n");
+			printf("Enter ip-address(you can exit with typing \"return\"):\n");
 			scanf("%s", charToGetted);
-			break;
-		}
-		case randomPlacing:
-		{
-			printf("\tBattleShips.\n\nDo you want to place ships by yourself(if no, we will use randomizer)?\n(y/n)\n");
-			*charToGetted[0] = _getch();
 			break;
 		}
 	}

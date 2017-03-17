@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{C83FFE10-9A58-4CB9-99A4-031BB6218241}</ProjectGuid>
+    <ProjectGuid>{46622256-D6D7-4655-9585-8D251B3E1619}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>ConsoleApplication1</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
@@ -72,6 +72,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <TargetName>BattleShips</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -150,13 +151,13 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="MainLogic.cpp" />
-    <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="SourceFiles\MainLogic.cpp" />
+    <ClCompile Include="SourceFiles\stdafx.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Headers\Logic\MainLogic.h" />
-    <ClInclude Include="stdafx.h" />
-    <ClInclude Include="targetver.h" />
+    <ClInclude Include="SourceFiles\stdafx.h" />
+    <ClInclude Include="SourceFiles\targetver.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

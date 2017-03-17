@@ -53,6 +53,7 @@ enum InformatioForPlayerToBeShowed
 void ClearInfoScreen();
 
 void Menu();
+void UseRandom(char *random);
 void PlayInformation(InformatioForPlayerToBeShowed infoCode, char charToBeShowed);
 void Print(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11]);
 void RepaintCell(int _x, int _y, char *charToBePainted, RepaintMode mode);

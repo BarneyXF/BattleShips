@@ -152,7 +152,7 @@
     <ClInclude Include="..\Headers\ServerClient\ClientServerPart.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ClientServerPart.cpp" />
+    <ClCompile Include="SourceFiles\ClientServerPart.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

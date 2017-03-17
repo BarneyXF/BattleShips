@@ -1,8 +1,8 @@
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
-#include "../Headers/ServerClient/ClientServerPart.h"
+#include "../../Headers/ServerClient/ClientServerPart.h"
 
-// TODO: timer of turn, do not wait for enemy's end of turn(press any key)
+// TODO: timer of turn, do not wait for enemy's end of turn(press any key), repair disconnect.
 
 // True if connected.
 bool isConnected;
@@ -50,6 +50,8 @@ void Server(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 
 	buffer[0] = placing;
 	send(socket, buffer, sizeof(buffer), 0);
+
+	UseRandom(random);
 
 	if (!PlacingShips(field, enemysfield, playersPointer, enemysPointer, *random, false))
 	{
@@ -103,7 +105,18 @@ void Client(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 	char serverIP[INET_ADDRSTRLEN];
 
 	ClientInformation(getIP, &serverIP, 0, 0);
-	anAddr.sin_addr.S_un.S_addr = inet_addr(serverIP);
+	if (strcmp(serverIP, "return") == 0)
+	{
+		return;
+	}
+	else if (strcmp(serverIP, "localhost") == 0)
+	{
+		anAddr.sin_addr.S_un.S_addr = inet_addr("127.0.0.1");
+	}
+	else
+	{
+		anAddr.sin_addr.S_un.S_addr = inet_addr(serverIP);
+	}
 
 	connect(clientSocket, (struct sockaddr *)&anAddr, sizeof(struct sockaddr));
 	isConnected = true;
@@ -123,7 +136,7 @@ void Client(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 	{
 		int stime = (unsigned int)time(NULL) / 2;
 		Repaint(field, enemysfield, anAddr);
-		//Sleep(100);
+		UseRandom(random);
 		srand(stime);
 		if (!PlacingShips(field, enemysfield, playersPointer, enemysPointer, *random, false))
 		{
