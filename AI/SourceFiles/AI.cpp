@@ -40,7 +40,7 @@ void PrintShotInfoForPlayer(int x, int y, ShotResult result, SeaCell(*playersFie
 							SeaCell(*enemyField)[11][11])
 {
 	// Draws fields and meta-info.
-	Repaint(playersField, enemyField);
+	Repaint(playersField, enemyField, single);
 
 	std::string strResult = "";
 

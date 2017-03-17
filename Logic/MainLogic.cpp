@@ -3,8 +3,8 @@
 #include "../Headers/Logic/MainLogic.h"
 #include "../Headers/Console/ConsoleLogic.h"
 #include "../Headers/AI/AI.h"
+#include "../Headers/ServerClient/ClientServerPart.h"
 
-// TODO: do AI checking of 1 squares etc(area checker?), repair out of bounds, make server part(Maybe something like LAN)
 /*
 *
 *
@@ -12,6 +12,8 @@
 *
 *
 */
+
+// TODO: SOME REPAIRS
 
 // Main function.
 int main()
@@ -21,12 +23,20 @@ int main()
 }
 
 // Placing ships on the fields.
-bool PlacingShips(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11], Player(*playersPointer), Player(*aisPointer), char random)
+bool PlacingShips(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11], 
+			Player(*playersPointer), Player(*aisPointer), char random, bool vsAI)
 {
 	int numOfShipsOfType = 0;
 	int shipCounter = 0;
-
-	Repaint(field, enemysfield);
+	if (vsAI)
+	{
+		Repaint(field, enemysfield, single);
+	}
+	else
+	{
+		Repaint(field, enemysfield, server);
+	}
+	
 	switch (random)
 	{
 	case 'y':
@@ -94,7 +104,7 @@ bool PlacingShips(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11], Player
 			numOfShipsOfType++;
 			for (int j = numOfShipsOfType; j > 0; j--)
 			{
-				srand(time(0));
+				//srand(time(0));
 				int x = rand() % 10 + 0;
 				int y = rand() % 10 + 0;
 				int placingMode = rand() % 2 + 0;
@@ -122,29 +132,38 @@ bool PlacingShips(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11], Player
 	ClearInfoScreen();
 	RepaintCell(0, 15, "", infoMode);
 	PlacingInformation(wait, '\0', 0, 0);
-
-	// AI placing ships
-	numOfShipsOfType = 0;
-	shipCounter = 0;
-	for (int numOfDecks = 4; numOfDecks >= 1; numOfDecks--)
+	if (vsAI)
 	{
-		numOfShipsOfType++;
-		for (int j = numOfShipsOfType; j > 0; j--)
+		// AI placing ships
+		numOfShipsOfType = 0;
+		shipCounter = 0;
+		for (int numOfDecks = 4; numOfDecks >= 1; numOfDecks--)
 		{
-			srand(time(0));
-			int x = rand() % 10 + 0;
-			int y = rand() % 10 + 0;
-			int placingMode = rand() % 2 + 0;
-
-			if (!Placing(x, y, placingMode, numOfDecks, shipCounter, enemysfield, aisPointer))
+			numOfShipsOfType++;
+			for (int j = numOfShipsOfType; j > 0; j--)
 			{
-				j++;
-				continue;
+				srand(time(0));
+				int x = rand() % 10 + 0;
+				int y = rand() % 10 + 0;
+				int placingMode = rand() % 2 + 0;
+
+				if (!Placing(x, y, placingMode, numOfDecks, shipCounter, enemysfield, aisPointer))
+				{
+					j++;
+					continue;
+				}
+				shipCounter++;
 			}
-			shipCounter++;
 		}
 	}
-	Repaint(field, enemysfield);
+	if (vsAI)
+	{
+		Repaint(field, enemysfield, single);
+	}
+	else
+	{
+		Repaint(field, enemysfield, server);
+	}
 	return true;
 }
 
@@ -196,7 +215,8 @@ bool Placing(int x, int y, int placingMode, int numOfDecks, int shipCounter,
 }
 
 // Ckecking if we can place ship in this coordinates.
-bool PlacingCheck(int x, int y, SeaCell(*field)[11][11], Player (*player), int totalNumOfDecks, int xAugment, int yAugment)
+bool PlacingCheck(int x, int y, SeaCell(*field)[11][11], Player (*player), 
+			int totalNumOfDecks, int xAugment, int yAugment)
 {
 	bool canPlace = false;
 	for (int currentNumOfDeck = 0; currentNumOfDeck < totalNumOfDecks; currentNumOfDeck++)
@@ -290,7 +310,7 @@ void FillShipInfo(SeaCell(*field)[11][11], Player(*pointer), int x, int y, int s
 
 // Main action.
 bool Playing(SeaCell(*playersField)[11][11], SeaCell(*enemyField)[11][11], Player(*playersPointer), 
-			 Player(*aisPointer), DamagedShipToBeDestroedByAI *shipToAttack)
+			 Player(*enemysPointer), DamagedShipToBeDestroedByAI *shipToAttack, bool vsAI, SOCKET *socket, sockaddr_in *dest_addr)
 {
 	ShotResult result = none;
 	do 
@@ -314,8 +334,22 @@ bool Playing(SeaCell(*playersField)[11][11], SeaCell(*enemyField)[11][11], Playe
 		int x = charX - '0';
 		int y = charY - '0';
 
-		result = ShootingChecker(&x, &y, enemyField, aisPointer);
-		switch(result)
+		if (vsAI)
+		{
+			result = ShootingChecker(&x, &y, enemyField, enemysPointer);
+		}
+		else
+		{
+			ResultOfTurn isConnect = SendToCheck(x, y, &result, socket, dest_addr);
+			if (isConnect == disconnect)
+			{
+				system("cls");
+				PlayInformation(disconnect, '\0');
+				return false;
+			}
+			//SendInfoForCheck(x, y, &result, socket, dest_addr);
+		}
+		switch (result)
 		{
 			case repeatedShot:
 			{
@@ -324,7 +358,7 @@ bool Playing(SeaCell(*playersField)[11][11], SeaCell(*enemyField)[11][11], Playe
 			}
 			case miss:
 			{
-			
+
 				(*enemyField)[x][y] = marked;
 				PlayInformation(missed, '\0');
 				RepaintCell(x + 12, y, Miss_Cell, playMode);
@@ -334,43 +368,65 @@ bool Playing(SeaCell(*playersField)[11][11], SeaCell(*enemyField)[11][11], Playe
 			case damaged:
 			{
 				(*enemyField)[x][y] = kill;
-				(*aisPointer).count.totalNumOfPlSquares--;
+				(*enemysPointer).count.totalNumOfPlSquares--;
 				RepaintCell(x + 12, y, Killed_Cell, playMode);
 				RepaintCell(16, 23, "", infoMode);
-				PlayInformation(damage, '\0');	
+				PlayInformation(damage, '\0');
 				continue;
 			}
 
 			case killed:
 			{
 				(*enemyField)[x][y] = kill;
-				(*aisPointer).count.totalNumOfPlSquares--;
+				(*enemysPointer).count.totalNumOfPlSquares--;
 				RepaintCell(x + 12, y, Killed_Cell, playMode);
 				RepaintCell(16, 23, "", infoMode);
 				PlayInformation(killing, '\0');
-				if ((*aisPointer).count.totalNumOfPlSquares == 0)
+				if ((*enemysPointer).count.totalNumOfPlSquares == 0)
 				{
 					return true;
 				}
 				continue;
 			}
-			
 		}
+
 		RepaintCell(0, 25, "", infoMode);
 		PlayInformation(AIturn, '\0');
-
-		// AI's turn
-		if ((*aisPointer).count.totalNumOfPlSquares > 0)
+		
+		if ((*enemysPointer).count.totalNumOfPlSquares > 0)
 		{
-			TurnOfAI(playersField, playersPointer, shipToAttack, enemyField);
+			if (vsAI)
+			{
+				// AI's turn
+				TurnOfAI(playersField, playersPointer, shipToAttack, enemyField);
+			}
+			else
+			{
+				// Enemy's turn
+				ResultOfTurn isWin = EnemysTurn(playersField, enemyField, playersPointer, enemysPointer, socket, dest_addr, x, y);
+				if (isWin == win)
+				{
+					return true;
+				}
+				else if (isWin == loose)
+				{
+					return false;
+				}
+				else if (isWin == disconnected)
+				{
+					system("cls");
+					PlayInformation(disconnect, '\0');
+					return false;
+				}
+			}
 		}
 		else
 		{
 			return true;
 		}
+		
 	}
 	while ((*playersPointer).count.totalNumOfPlSquares > 0);
-	
 	return false;
 }
 
@@ -403,7 +459,8 @@ ShotResult ShootingChecker(int *x, int *y, SeaCell(*field)[11][11], Player(*play
 }
 
 // Checking coordinates if we hit ship.
-ShotResult CompareCoord(int *x, int *y, SeaCell(*field)[11][11], Player(*playersPointer), int numOfShip, int numOfDeck)
+ShotResult CompareCoord(int *x, int *y, SeaCell(*field)[11][11], 
+			Player(*playersPointer), int numOfShip, int numOfDeck)
 {
 	if (((*playersPointer).ship[numOfShip].cell.x[numOfDeck] == *x) && ((*playersPointer).ship[numOfShip].cell.y[numOfDeck] == *y))
 	{

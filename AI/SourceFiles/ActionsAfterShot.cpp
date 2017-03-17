@@ -98,7 +98,10 @@ void SetMarkedSellsAroundKilledShip(int x, int y, DamagedShipToBeDestroedByAI *s
 			{
 				for (int squaresY = 0; squaresY < 3; squaresY++)
 				{
-					(*playersField)[x - 1 + squaresX][y - 1 + squaresY] = marked;
+					int xOffset = x - 1 + squaresX;
+					int yOffset = y - 1 + squaresY;
+					if ((xOffset < 0) || (yOffset < 0)) continue;
+					(*playersField)[xOffset][yOffset] = marked;
 				}
 			}
 		}

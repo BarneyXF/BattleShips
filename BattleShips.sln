@@ -15,6 +15,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Logic", "Logic\Logic.vcxpro
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PlaceYourGrafonHerePlez", "PlaceYourGrafonHerePlez\PlaceYourGrafonHerePlez.vcxproj", "{28817D5B-9D85-4D4E-869A-1CD2CEF0E08D}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ServerClient", "ServerClient\ServerClient.vcxproj", "{88859B96-BD65-4DF1-BC9C-6E004FC52EA0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -55,6 +57,14 @@ Global
 		{28817D5B-9D85-4D4E-869A-1CD2CEF0E08D}.Release|x64.Build.0 = Release|x64
 		{28817D5B-9D85-4D4E-869A-1CD2CEF0E08D}.Release|x86.ActiveCfg = Release|Win32
 		{28817D5B-9D85-4D4E-869A-1CD2CEF0E08D}.Release|x86.Build.0 = Release|Win32
+		{88859B96-BD65-4DF1-BC9C-6E004FC52EA0}.Debug|x64.ActiveCfg = Debug|x64
+		{88859B96-BD65-4DF1-BC9C-6E004FC52EA0}.Debug|x64.Build.0 = Debug|x64
+		{88859B96-BD65-4DF1-BC9C-6E004FC52EA0}.Debug|x86.ActiveCfg = Debug|Win32
+		{88859B96-BD65-4DF1-BC9C-6E004FC52EA0}.Debug|x86.Build.0 = Debug|Win32
+		{88859B96-BD65-4DF1-BC9C-6E004FC52EA0}.Release|x64.ActiveCfg = Release|x64
+		{88859B96-BD65-4DF1-BC9C-6E004FC52EA0}.Release|x64.Build.0 = Release|x64
+		{88859B96-BD65-4DF1-BC9C-6E004FC52EA0}.Release|x86.ActiveCfg = Release|Win32
+		{88859B96-BD65-4DF1-BC9C-6E004FC52EA0}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

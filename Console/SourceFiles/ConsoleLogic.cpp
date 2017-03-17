@@ -1,5 +1,8 @@
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
 #include "../../Headers/Console/ConsoleLogic.h"
 #include "../../Logic/stdafx.h"
+
 
 HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
@@ -10,19 +13,15 @@ HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 *
 *
 */
+
+// TODO: SOME REPAIRS
+
 // Main menu of the game.	Console func.
 void Menu()
 {
-	//COORD bufferSize = { 40, 50 };
-	//SetConsoleScreenBufferSize(hConsole, bufferSize);
-	
 	// Creating battle fields.
 	SeaCell playersBattleSea[11][11];
 	SeaCell enemysBattleSea[11][11];
-
-	Stage gameStage;
-
-	
 
 	SetConsoleTextAttribute(hConsole, InfoColor);
 	// Entering menu.
@@ -37,14 +36,14 @@ void Menu()
 				enemysBattleSea[i][j] = empty;
 			}
 		}
-		gameStage = menu;
 		printf("\t BattleShips.\n\n");
 		//printf("Press one of this buttons to choose option:\n\n");
 		printf(" 1 ) Play vs AI.\n");
-		printf(" 2 ) Play vs another player.\n");
+		printf(" 2 ) Create server.\n");
+		printf(" 3 ) Connect to server.\n");
 		printf("esc) Exit.\n");
 		char choise;
-		if (!GetNum(&choise, '1', '2'))
+		if (!GetNum(&choise, '1', '3'))
 		{
 			system("cls");
 			printf("Good Bye! Have a nice day!\nPress any keyboard button to continue...\n");
@@ -54,7 +53,8 @@ void Menu()
 		}
 		// Creating players.
 		Player player;
-
+		// TODO: REPLACE WITH SWITCH
+		int battleResult;
 		if (choise == '1')
 		{
 			Player ai;
@@ -64,6 +64,7 @@ void Menu()
 			system("cls");
 			printf("\tBattleShips.\n\nDo you want to place ships by yourself(if no, we will use randomizer)?\n(y/n)\n");
 			char random;
+			srand(time(0));
 			do
 			{
 				if (!GetNum(&random, 'n', 'y'))
@@ -77,7 +78,7 @@ void Menu()
 			} while ((random != 'n') && (random != 'y'));
 
 			//gameStage = 
-			if (!PlacingShips(&playersBattleSea, &enemysBattleSea, &player, &ai, random))
+			if (!PlacingShips(&playersBattleSea, &enemysBattleSea, &player, &ai, random, true))
 			{
 				system("cls");
 				continue;
@@ -86,8 +87,9 @@ void Menu()
 			// Initializing number of squares(decks) of each player.
 			player.count.totalNumOfPlSquares = totalNumOfSqares;
 			ai.count.totalNumOfPlSquares = totalNumOfSqares;
-
-			if (Playing(&playersBattleSea, &enemysBattleSea, &player, &ai, &shipToAttack))
+			sockaddr_in k = {1, 1};
+			SOCKET n;
+			if (Playing(&playersBattleSea, &enemysBattleSea, &player, &ai, &shipToAttack, true, &n, &k))
 			{
 				system("cls");
 				SetConsoleTextAttribute(hConsole, ShipsColor);
@@ -106,11 +108,51 @@ void Menu()
 			_getch();
 			system("cls");
 		}
-		else
+		else if(choise == '2')
 		{
-			Player enemy; //we need to get this info from player
+			char random = 'n';
+			Player enemy;
+			Server(&playersBattleSea, &enemysBattleSea, &player, &enemy, &random, &battleResult);
+			//CreateServer(&playersBattleSea, &enemysBattleSea, &player, &enemy, &random, &battleResult);
+			//system("cls");
+			//printf("\tWaiting for another player...\n\n");
+			
+			/*do
+			{
+				if (!GetNum(&random, 'n', 'y'))
+				{
+					system("cls");
+					printf("Good Bye! Have a nice day!\nPress any keyboard button to continue...\n");
+					// Waiting for players reaction
+					_getch();
+					return;
+				}
+			} while ((random != 'n') && (random != 'y'));*/
+			
+			 //we need to get this info from player
 						  //play vs player(ask ip etc)
 		}
+		else
+		{
+			char random = 'n';// TODO: REPLACE WITH QUESTION		
+			Player enemy;
+			//Connect();
+			Client(&playersBattleSea, &enemysBattleSea, &player, &enemy, &random, &battleResult);
+			//CreateConnection(&playersBattleSea, &enemysBattleSea, &player, &enemy, &random, &battleResult);
+		}
+		system("cls");
+		if (battleResult == 1)
+		{
+			printf("You win!\n");
+			
+		}
+		else
+		{
+			printf("You loose!\n");
+		}
+		printf("\nPress any keyboard button to continue...\n");
+		// Waiting for players reaction
+		_getch();
 	} while (true);
 }
 
@@ -170,7 +212,6 @@ void Print(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11])
 			}
 			case ship:
 			{
-				// TODO: CHANGE TO FREE_CELL
 				SetConsoleTextAttribute(hConsole, CellsColor);
 				printf(Free_Cell);
 				break;
@@ -194,11 +235,30 @@ void Print(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11])
 }
 
 // Printing some additional information.	Console func.
-void Repaint(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11])
+void Repaint(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11], sockaddr_in address)
 {
 	SetConsoleTextAttribute(hConsole, InfoColor);
 	system("cls");
-	printf("\t BattleShips: Player vs AI(ip: localhost)\n\n");
+	printf("\t BattleShips: Player vs Player(ip: %s)\n\n", inet_ntoa(address.sin_addr));
+	printf("\t Your field \t\tEnemy's field\n\n");
+	Print(field, enemyField);
+	SetConsoleTextAttribute(hConsole, InfoColor);
+}
+
+// Second function for server.
+void Repaint(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11], GameMode mode)
+{
+	SetConsoleTextAttribute(hConsole, InfoColor);
+	system("cls");
+	if (single)
+	{
+		printf("\t BattleShips: Player vs AI(ip: localhost)\n\n");
+	}
+	else
+	{
+		printf("\t BattleShips: Player vs Player(ip: localhost(Server))\n\n");
+	}
+	//printf("\t BattleShips: Player vs AI(ip: )\n\n");
 	printf("\t Your field \t\tEnemy's field\n\n");
 	Print(field, enemyField);
 	SetConsoleTextAttribute(hConsole, InfoColor);
@@ -241,7 +301,7 @@ void RepaintCell(int _x, int _y, char *charToBePainted, RepaintMode mode)
 // Function to clear additional info.
 void ClearInfoScreen()
 {
-	for (int i = 0; i < 60; i++)
+	for (int i = 0; i < 75; i++)
 		for (int j = 0; j < 11; j++)
 			RepaintCell(i, j + 15, " ", infoMode);
 }
@@ -319,6 +379,11 @@ void PlayInformation(InformatioForPlayerToBeShowed infoCode, char charToBeShowed
 	{
 		break;
 	}
+	case disconnect:
+	{
+		printf("Connection was interrupted!\n");
+		break;
+	}
 	}
 }
 
@@ -372,5 +437,70 @@ void PlacingInformation(InformatioForPlayerToBeShowed infoCode, char charToBeSho
 		printf("\nPlaced! Please wait for ai's turn.\n");
 		break;
 	}
+	}
+}
+
+// Information for player in multiplayer.
+void ClientInformation(InformatioForPlayerToBeShowed infoCode, char (*charToGetted)[INET_ADDRSTRLEN], int x, int y)
+{
+	switch (infoCode)
+	{
+		case clientRepeated:
+		{
+			printf("Your enemy pretty stupid!(%i, %i)\n", x, y);
+			break;
+		}
+		case clientMissed:
+		{
+			printf("Your enemy missed!(%i, %i)\n", x, y);
+			break;
+		}
+		case clientDamaged:
+		{
+			printf("Your ship placed at %i, %i is damaged!\n", x, y);
+			break;
+		}
+		case clientKilled:
+		{
+			printf("Your ship placed at %i, %i is killed!\n", x, y);
+			break;
+		}
+		case clientWait:
+		{
+			printf("Waiting!\n");
+			break;
+		}
+		case clientShoot:
+		{
+			printf("Enemy's shot.\n");
+			break;
+		}
+		case serverCreate:
+		{
+			printf("Server created! Waiting for players...\n");
+			break;
+		}
+		case wsaError:
+		{
+			printf("WSAStarup error: %i\n", x);
+			break;
+		}
+		case socketError:
+		{
+			printf("Socket error. Cann't syncronise stages!\n");
+			break;
+		}
+		case getIP:
+		{
+			printf("Enter ip-address:\n");
+			scanf("%s", charToGetted);
+			break;
+		}
+		case randomPlacing:
+		{
+			printf("\tBattleShips.\n\nDo you want to place ships by yourself(if no, we will use randomizer)?\n(y/n)\n");
+			*charToGetted[0] = _getch();
+			break;
+		}
 	}
 }
