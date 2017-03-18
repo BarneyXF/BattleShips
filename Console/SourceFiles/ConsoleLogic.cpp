@@ -14,8 +14,6 @@ HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 *
 */
 
-// TODO: repair exiting
-
 // Main menu of the game.	Console func.
 void Menu()
 {
@@ -88,15 +86,10 @@ void Menu()
 					printf("You loose(fi vam)!\n");
 				}
 				SetConsoleTextAttribute(hConsole, InfoColor);
-				printf("\nPress any keyboard button to continue...\n");
-				// Waiting for players reaction
-				_getch();
-				system("cls");
 				break;
 			}
 			case '2':
 			{
-				// TODO: PLACE IN SEPARATE THREAD.
 				char random = 'n';
 				Player enemy;
 				Server(&playersBattleSea, &enemysBattleSea, &player, &enemy, &random, &battleResult);
@@ -110,19 +103,36 @@ void Menu()
 				break;
 			}
 		}
-		system("cls");
-		if (battleResult == 1)
+		if (choise > '1')
 		{
-			printf("You win!\n");
-			
+			system("cls");
+			switch (battleResult)
+			{
+			case 1:
+			{
+				SetConsoleTextAttribute(hConsole, ShipsColor);
+				printf("You win!\n");
+				break;
+			}
+			case 0:
+			{
+				SetConsoleTextAttribute(hConsole, DamagedColor);
+				printf("You loose(fi vam)!\n");
+				break;
+			}
+			default:
+			{
+				SetConsoleTextAttribute(hConsole, InfoColor);
+				printf("Connection was lost!\n");
+				break;
+			}
+			}
 		}
-		else
-		{
-			printf("You loose!\n");
-		}
-		printf("\nPress any keyboard button to continue...\n");
+		SetConsoleTextAttribute(hConsole, InfoColor);
+		printf("\nReturn to menu in:\n");
 		// Waiting for players reaction
-		_getch();
+		Timer(5, 19, 2);
+		system("cls");
 	} while (true);
 }
 
@@ -250,7 +260,6 @@ void Repaint(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11], GameMode mod
 	{
 		printf("\t BattleShips: Player vs Player(ip: localhost(Server))\n\n");
 	}
-	//printf("\t BattleShips: Player vs AI(ip: )\n\n");
 	printf("\t Your field \t\tEnemy's field\n\n");
 	Print(field, enemyField);
 	SetConsoleTextAttribute(hConsole, InfoColor);
@@ -294,7 +303,7 @@ void RepaintCell(int _x, int _y, char *charToBePainted, RepaintMode mode)
 void ClearInfoScreen()
 {
 	for (int i = 0; i < 75; i++)
-		for (int j = 0; j < 13; j++)
+		for (int j = 0; j < 15; j++)
 			RepaintCell(i, j + 15, " ", infoMode);
 }
 
@@ -350,25 +359,21 @@ void PlayInformation(InformatioForPlayerToBeShowed infoCode, char charToBeShowed
 	case damage:
 	{
 		printf("damaged.\n");
-		printf("Your turn again. Press any keyboard button to continue...\n");
-		_getch();
+		printf("\nYour turn again. \nNext turn in:");
+		Timer(5, 14, 26);
 		break;
 	}
 	case killing:
 	{
 		printf("killed! Good job.\n");
-		printf("Your turn again. Press any keyboard button to continue...\n");
-		_getch();
+		printf("\nYour turn again.\nNext turn in:");
+		Timer(5, 14, 26);
 		break;
 	}
 	case AIturn:
 	{
-		printf("Now AI's turn. Press any keyboard button to continue...\n");
-		_getch();
-		break;
-	}
-	case AIInfo:
-	{
+		printf("Now AI's turn.\nNext turn in:");
+		Timer(5, 14, 26);
 		break;
 	}
 	case disconnect:
@@ -419,9 +424,9 @@ void PlacingInformation(InformatioForPlayerToBeShowed infoCode, char charToBeSho
 		SetConsoleTextAttribute(hConsole, DamagedColor);
 		printf("\nWrong position, please choose another position.\n");
 		SetConsoleTextAttribute(hConsole, InfoColor);
-		printf("Press any keyboard button to continue...\n");
+		printf("Return in:\n");
 		// Waiting for players reaction
-		_getch();
+		Timer(5, 11, 28);
 		break;
 	}
 	case wait:
@@ -459,7 +464,7 @@ void ClientInformation(InformatioForPlayerToBeShowed infoCode, char (*charToGett
 		}
 		case clientWait:
 		{
-			printf("Waiting!\n");
+			printf("Waiting!\nNext turn in:");
 			break;
 		}
 		case clientShoot:
@@ -489,4 +494,39 @@ void ClientInformation(InformatioForPlayerToBeShowed infoCode, char (*charToGett
 			break;
 		}
 	}
+}
+
+// Repaints field and prints AI's shot information.
+void PrintShotInfoForPlayer(int x, int y, ShotResult result, SeaCell(*playersField)[11][11],
+	SeaCell(*enemyField)[11][11])
+{
+	Repaint(playersField, enemyField, single);
+
+	std::string strResult = "";
+
+	// Convert result to string for output.
+	switch (result)
+	{
+	case miss:
+	{
+		strResult = "miss";
+		break;
+	}
+	case killed:
+	{
+		strResult = "killed";
+		break;
+	}
+
+	case damaged:
+	{
+		strResult = "damaged";
+		break;
+	}
+	}
+
+	std::cout << std::endl << "AI shoots cell {" << x << ";" << y << "}" << std::endl;
+	std::cout << "Result: " << strResult << std::endl << std::endl;
+	std::cout << "Next turn in:" << std::endl;
+	Timer(5, 14, 19);
 }

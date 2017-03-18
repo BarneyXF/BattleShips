@@ -56,7 +56,8 @@ bool PlacingShips(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 				PlacingInformation(yIs, charX, 0, 0);
 				if (!GetNum(&charY, Left_Border, Right_Border))
 				{
-					return false;
+					j++;
+					continue;
 				}
 				PlacingInformation(yForPlace, charY, numOfDecks, j);
 				int x = charX - '0';
@@ -331,7 +332,6 @@ bool Playing(SeaCell(*playersField)[11][11], SeaCell(*enemyField)[11][11], Playe
 	do 
 	{
 		char charX, charY;
-		//Repaint(playersField, enemyField);
 		ClearInfoScreen();
 		RepaintCell(0, 14, "", infoMode);
 		PlayInformation(currentAction, '\0');
@@ -343,7 +343,7 @@ bool Playing(SeaCell(*playersField)[11][11], SeaCell(*enemyField)[11][11], Playe
 		PlayInformation(xIs, charX);
 		if (!GetNum(&charY, Left_Border, Right_Border))
 		{
-			return false;
+			continue;
 		}
 		PlayInformation(yIs, charY);
 		int x = charX - '0';
@@ -355,14 +355,7 @@ bool Playing(SeaCell(*playersField)[11][11], SeaCell(*enemyField)[11][11], Playe
 		}
 		else
 		{
-			ResultOfTurn isConnect = SendToCheck(x, y, &result, socket, dest_addr);
-			if (isConnect == disconnect)
-			{
-				system("cls");
-				PlayInformation(disconnect, '\0');
-				return false;
-			}
-			//SendInfoForCheck(x, y, &result, socket, dest_addr);
+			SendToCheck(x, y, &result, socket, dest_addr);
 		}
 		switch (result)
 		{
@@ -406,18 +399,22 @@ bool Playing(SeaCell(*playersField)[11][11], SeaCell(*enemyField)[11][11], Playe
 		}
 
 		RepaintCell(0, 25, "", infoMode);
-		PlayInformation(AIturn, '\0');
+		
 		
 		if ((*enemysPointer).count.totalNumOfPlSquares > 0)
 		{
 			if (vsAI)
 			{
 				// AI's turn
+				PlayInformation(AIturn, '\0');
 				TurnOfAI(playersField, playersPointer, shipToAttack, enemyField);
 			}
 			else
 			{
 				// Enemy's turn
+				char s[22];
+				ClientInformation(clientWait, &s, 0, 0);
+				Timer(5, 14, 26);
 				ResultOfTurn isWin = EnemysTurn(playersField, enemyField, playersPointer, enemysPointer, socket, dest_addr, x, y);
 				if (isWin == win)
 				{
@@ -524,4 +521,17 @@ bool Check(char symbol, char leftBorder, char rightBorder)
 		return true;
 	}
 	return false;
+}
+
+// Replaces waiting for  "press any key to continue..."
+void Timer(int time, int x, int y)
+{
+	for (int timer = time; timer > 0; timer--)
+	{
+		char charTime[2];
+		charTime[0] = (timer + '0');
+		charTime[1] = '\0';
+		RepaintCell(x, y, &charTime[0], infoMode);
+		Sleep(1000);
+	}
 }

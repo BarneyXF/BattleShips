@@ -36,41 +36,4 @@ void TurnOfAI(SeaCell(*playersField)[11][11], Player(*playersPointer), DamagedSh
 }
 
 // Repaints field and prints AI's shot information.
-void PrintShotInfoForPlayer(int x, int y, ShotResult result, SeaCell(*playersField)[11][11], 
-							SeaCell(*enemyField)[11][11])
-{
-	// Draws fields and meta-info.
-	Repaint(playersField, enemyField, single);
-
-	std::string strResult = "";
-
-	// Convert result to string for output.
-	switch (result)
-	{
-	case miss:
-	{	
-		strResult = "miss";
-		break;
-	}
-	case killed:
-	{
-		strResult = "killed";
-		break;
-	}
-
-	case damaged:
-	{
-		strResult = "damaged";
-		break;
-	}
-	}
-
-	std::cout << std::endl << "AI shoots cell {" << x << ";" << y << "}" << std::endl;
-	std::cout << "Result: " << strResult << std::endl << std::endl;
-	std::cout << "Press any keyboard button to continue..." << std::endl;
-
-	// Waiting for players reaction
-	_getch();
-}
-
-
+// PrintShotInfoForPlayer moved to ConsoleLogic

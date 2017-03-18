@@ -5,6 +5,7 @@
 #include <math.h>
 #include <random>
 #include <iostream> 
+#include <string>
 #include <ctime>
 #include <conio.h>
 #include <cstdio>
@@ -45,7 +46,7 @@ enum GameMode
 // We need it to separate console and placing and playing functions(contains information to be showed).
 enum InformatioForPlayerToBeShowed
 {
-	currentAction, xCoordinate, xIs, yIs, missed, repeat, damage, killing, changePlayer, AIturn, AIInfo,
+	currentAction, xCoordinate, xIs, yIs, missed, repeat, damage, killing, changePlayer, AIturn,
 	xForPlace, yForPlace, placeMode, checking, wrong, wait, clientKilled, clientDamaged, clientMissed,
 	clientRepeated, clientShoot, clientWait, serverCreate, wsaError, socketError, getIP, randomPlacing, disconnect
 };
@@ -62,3 +63,5 @@ void Repaint(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11], sockaddr_in 
 bool GetNum(char *symbol, char leftBorder, char rightBorder);
 void PlacingInformation(InformatioForPlayerToBeShowed infoCode, char charToBeShowed, int numOfDecks, int numOfShips);
 void ClientInformation(InformatioForPlayerToBeShowed infoCode, char (*charToGetted)[INET_ADDRSTRLEN], int x, int y);
+void PrintShotInfoForPlayer(int x, int y, ShotResult result, SeaCell(*playersField)[11][11],
+	SeaCell(*enemyField)[11][11]);

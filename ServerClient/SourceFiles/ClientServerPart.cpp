@@ -2,10 +2,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "../../Headers/ServerClient/ClientServerPart.h"
 
-// TODO: timer of turn, do not wait for enemy's end of turn(press any key), repair disconnect.
-
-// True if connected.
-bool isConnected;
+// TODO: timer of turn(haven't idea how realize that without threads, so for now, we haven't it)
 
 // Server's logic func.
 void Server(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
@@ -13,6 +10,7 @@ void Server(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 {
 	// Initialization started.
 
+	int connection;
 	WSADATA WSAData;
 	if (WSAStartup(MAKEWORD(1, 1), &WSAData) != 0)
 	{
@@ -40,30 +38,46 @@ void Server(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 	
 	// Connect.
 	SOCKET socket = accept(listeningSocket, (struct sockaddr*)&addrFrom, &addrFromLength);
-	isConnected = true;
-	// Creating thread for checking connnection with client.
-	std::thread checkingThread(ServerConnectionChecker, &isConnected);
-	checkingThread.detach();
 
 	// First step - synconizing.
 	char buffer[10];
 
 	buffer[0] = placing;
-	send(socket, buffer, sizeof(buffer), 0);
 
+	connection = send(socket, buffer, sizeof(buffer), 0);
+	if (connection == -1)
+	{
+		PlayInformation(disconnect, '\0');
+		return;
+	}
 	UseRandom(random);
 
 	if (!PlacingShips(field, enemysfield, playersPointer, enemysPointer, *random, false))
 	{
+		PlayInformation(disconnect, '\0');
 		return;
 	}
 
 	// Wait for enemy's ready.
-	recv(socket, buffer, sizeof(buffer), 0);
+	connection = recv(socket, buffer, sizeof(buffer), 0);
+	if (connection == -1)
+	{
+		PlayInformation(disconnect, '\0');
+		return;
+	}
 	buffer[0] = playing;
-	send(socket, buffer, sizeof(buffer), 0);
+	connection = send(socket, buffer, sizeof(buffer), 0);
+	if (connection == -1)
+	{
+		return;
+	}
 	// Wait for enemy's ready.
-	recv(socket, buffer, sizeof(buffer), 0);
+	connection = recv(socket, buffer, sizeof(buffer), 0);
+	if (connection == -1)
+	{
+		PlayInformation(disconnect, '\0');
+		return;
+	}
 	if (buffer[0] == ready)
 	{
 		(*playersPointer).count.totalNumOfPlSquares = totalNumOfSqares;
@@ -79,7 +93,6 @@ void Server(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 			*battleResult = 0; // loose
 		}
 	}
-	//checkingThread.join();
 	closesocket(socket);
 	WSACleanup();
 	return;
@@ -89,6 +102,7 @@ void Server(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 void Client(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 	Player(*playersPointer), Player(*enemysPointer), char *random, int *battleResult)
 {
+	int connection;
 	WSADATA WSAData;
 	if (WSAStartup(MAKEWORD(1, 1), &WSAData) != 0)
 	{
@@ -109,7 +123,7 @@ void Client(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 	{
 		return;
 	}
-	else if (strcmp(serverIP, "localhost") == 0)
+	else if ((strcmp(serverIP, "localhost") == 0) || (strcmp(serverIP, "LOCALHOST") == 0))
 	{
 		anAddr.sin_addr.S_un.S_addr = inet_addr("127.0.0.1");
 	}
@@ -119,14 +133,15 @@ void Client(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 	}
 
 	connect(clientSocket, (struct sockaddr *)&anAddr, sizeof(struct sockaddr));
-	isConnected = true;
-	// Create thread for checking connection with server.
-	std::thread checkingThread(ClientConnectionChecker, serverIP, &isConnected);
-	checkingThread.detach();
 
 	// First step - syncronizing.
 	char buffer[10];
-	recv(clientSocket, buffer, sizeof(buffer), 0);
+	connection = recv(clientSocket, buffer, sizeof(buffer), 0);
+	if (connection == -1)
+	{
+		PlayInformation(disconnect, '\0');
+		return;
+	}
 	if (buffer[0] != placing)
 	{
 		ClientInformation(socketError, '\0', 0, 0);
@@ -145,9 +160,19 @@ void Client(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 	}
 	// We ready.
 	buffer[0] = ready;
-	send(clientSocket, buffer, sizeof(buffer), 0);
+	connection = send(clientSocket, buffer, sizeof(buffer), 0);
+	if (connection == -1)
+	{
+		PlayInformation(disconnect, '\0');
+		return;
+	}
 	// Stage - playing.
-	recv(clientSocket, buffer, sizeof(buffer), 0);
+	connection = recv(clientSocket, buffer, sizeof(buffer), 0);
+	if (connection == -1)
+	{
+		PlayInformation(disconnect, '\0');
+		return;
+	}
 	if (buffer[0] != playing)
 	{
 		ClientInformation(socketError, '\0', 0, 0);
@@ -156,7 +181,12 @@ void Client(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 	else
 	{
 		buffer[0] = ready;
-		send(clientSocket, buffer, sizeof(buffer), 0);
+		connection = send(clientSocket, buffer, sizeof(buffer), 0);
+		if (connection == -1)
+		{
+			PlayInformation(disconnect, '\0');
+			return;
+		}
 		(*playersPointer).count.totalNumOfPlSquares = totalNumOfSqares;
 		(*enemysPointer).count.totalNumOfPlSquares = totalNumOfSqares;
 		DamagedShipToBeDestroedByAI shipToAttack;
@@ -166,7 +196,12 @@ void Client(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 		ClearInfoScreen();
 		RepaintCell(0, 15, "", infoMode);
 		ClientInformation(clientShoot, '\0', 0, 0);
-		recv(clientSocket, buffer, sizeof(buffer), 0);
+		connection = recv(clientSocket, buffer, sizeof(buffer), 0);
+		if (connection == -1)
+		{
+			PlayInformation(disconnect, '\0');
+			return;
+		}
 		do
 		{
 			int x = buffer[1];
@@ -211,9 +246,19 @@ void Client(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 			}
 			//Send info back.
 			buffer[3] = result;
-			send(clientSocket, buffer, sizeof(buffer), 0);
+			connection = send(clientSocket, buffer, sizeof(buffer), 0);
+			if (connection == -1)
+			{
+				PlayInformation(disconnect, '\0');
+				return;
+			}
 			// Waiting for our turn.
-			recv(clientSocket, buffer, sizeof(buffer), 0);
+			connection = recv(clientSocket, buffer, sizeof(buffer), 0);
+			if (connection == -1)
+			{
+				PlayInformation(disconnect, '\0');
+				return;
+			}
 		} while (buffer[0] != changeCurrentPlayer);
 
 		if (Playing(field, enemysfield, playersPointer, enemysPointer, &shipToAttack, false, &clientSocket, &anAddr))
@@ -225,7 +270,6 @@ void Client(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 			*battleResult = 0; // loose
 		}
 	}
-	//checkingThread.join();
 	closesocket(clientSocket);
 	WSACleanup();
 	return;
@@ -244,17 +288,20 @@ ResultOfTurn EnemysTurn(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 
 	char buffer[10];
 
-	if (!isConnected)
+	buffer[0] = changeCurrentPlayer;
+	int connection = send((*s1), buffer, sizeof(buffer), 0);
+	if (connection == -1)
 	{
+		PlayInformation(disconnect, '\0');
 		return disconnected;
 	}
-
-	buffer[0] = changeCurrentPlayer;
-	send((*s1), buffer, sizeof(buffer), 0);
-
 	// Get coordinates for checking
-	int client_addr_size = sizeof(dest_addr);
-	recv((*s1), buffer, sizeof(buffer), 0);
+	connection = recv((*s1), buffer, sizeof(buffer), 0);
+	if (connection == -1)
+	{
+		PlayInformation(disconnect, '\0');
+		return disconnected;
+	}
 	do
 	{
 		int x = buffer[1];
@@ -266,7 +313,6 @@ ResultOfTurn EnemysTurn(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 			case repeatedShot:
 			{
 				ClientInformation(clientRepeated, '\0', x, y);
-				//PlayInformation(repeat, '\0');
 				break;
 			}
 			case miss:
@@ -274,7 +320,6 @@ ResultOfTurn EnemysTurn(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 
 				(*field)[x][y] = marked;
 				ClientInformation(clientMissed, '\0', x, y);
-				//PlayInformation(missed, '\0');
 				RepaintCell(x, y, Miss_Cell, playMode);
 				break;
 			}
@@ -286,7 +331,6 @@ ResultOfTurn EnemysTurn(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 				RepaintCell(x, y, Killed_Cell, playMode);
 				RepaintCell(0, 15, "", infoMode);
 				ClientInformation(clientDamaged, '\0', x, y);
-				//PlayInformation(damage, '\0');
 				break;
 			}
 
@@ -300,119 +344,56 @@ ResultOfTurn EnemysTurn(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 				if ((*playersPointer).count.totalNumOfPlSquares == 0)
 				{
 					buffer[0] = end;
-					//return false;
 				}
-				//PlayInformation(killing, '\0');
 				break;
 			}
 		}
 		//Send info back.
 		buffer[3] = result;
-		send((*s1), buffer, sizeof(buffer), 0);
+		connection = send((*s1), buffer, sizeof(buffer), 0);
+		if (connection == -1)
+		{
+			PlayInformation(disconnect, '\0');
+			return disconnected;
+		}
 		if (buffer[0] == end)
 		{
 			return loose;
 		}
 		// Waiting for our turn.
-		int client_addr_size = sizeof(dest_addr);
-		recv((*s1), buffer, sizeof(buffer), 0);
+		connection = recv((*s1), buffer, sizeof(buffer), 0);
+		if (connection == -1)
+		{
+			PlayInformation(disconnect, '\0');
+			return disconnected;
+		}
 	} while (buffer[0] != changeCurrentPlayer);
 
 	return nextTurn;
 }
 
 // Sending and receiving info of enemy's shot.
-ResultOfTurn SendToCheck(int x, int y, ShotResult *result, SOCKET *s1, sockaddr_in *client_addr)
+void SendToCheck(int x, int y, ShotResult *result, SOCKET *s1, sockaddr_in *client_addr)
 {
 	char buffer[10];
-
-	if (!isConnected)
-	{
-		return disconnected;
-	}
 
 	buffer[0] = sendInformation;
 	buffer[1] = x;
 	buffer[2] = y;
-	send((*s1), buffer, sizeof(buffer), 0);
-
-	int client_addr_size = sizeof(*client_addr);
-
-	int size = recv((*s1), buffer, sizeof(buffer), 0);
-	
-	int res = buffer[3];
-	*result = (ShotResult)res;
-}
-
-// Sends pakages for cheking connection every 5-10 secs and disconnect if there is not package for 30 secs.
-void ServerConnectionChecker(bool *isConnected)
-{
-	char checkBuffer[5];
-
-
-	SOCKET listeningSocket;
-	if (INVALID_SOCKET == (listeningSocket = socket(AF_INET, SOCK_STREAM, 0)))
+	int connection = send((*s1), buffer, sizeof(buffer), 0);
+	if (connection == -1)
 	{
-		ClientInformation(wsaError, '\0', WSAGetLastError(), 0);
+		PlayInformation(disconnect, '\0');
 		return;
 	}
-	struct sockaddr_in addrIn;
-	addrIn.sin_family = AF_INET;
-	addrIn.sin_port = htons(CHECKPORT);
-	addrIn.sin_addr.s_addr = INADDR_ANY;
+	int client_addr_size = sizeof(*client_addr);
 
-	bind(listeningSocket, (LPSOCKADDR)&addrIn, sizeof(addrIn));
-	listen(listeningSocket, 100);
-	sockaddr_in addrFrom;
-	int addrFromLength = sizeof(addrFrom);
-
-	// Connect.
-	SOCKET socket = accept(listeningSocket, (struct sockaddr*)&addrFrom, &addrFromLength);
-
-	do
+	connection = recv((*s1), buffer, sizeof(buffer), 0);
+	if (connection == -1)
 	{
-		Sleep(5000);
-		checkBuffer[0] = 1;
-		checkBuffer[1] = 2;
-		checkBuffer[2] = 0;
-		send(socket, checkBuffer, sizeof(checkBuffer), 0);
-		checkBuffer[0] = 0;
-		checkBuffer[1] = 1;
-		checkBuffer[2] = 2;
-		recv(socket, checkBuffer, sizeof(checkBuffer), 0);
-		if (!(checkBuffer[0] == 2) || !(checkBuffer[1] == 0) || !(checkBuffer[2] == 1))
-		{
-			printf("Connection error!\n");
-			*isConnected = false;
-		}
-	} while (*isConnected);
-}
-
-// Check's connection with server every 5 seconds.
-void ClientConnectionChecker(char serverIP[], bool *isConnected)
-{
-	char checkBuffer[5];
-
-	SOCKET clientSocket = socket(AF_INET, SOCK_STREAM, 0);
-
-	struct sockaddr_in anAddr;
-	anAddr.sin_family = AF_INET;
-	anAddr.sin_port = htons(CHECKPORT);
-	anAddr.sin_addr.S_un.S_addr = inet_addr(serverIP);
-	connect(clientSocket, (struct sockaddr *)&anAddr, sizeof(struct sockaddr));
-
-	do
-	{
-		Sleep(5000);
-		recv(clientSocket, checkBuffer, sizeof(checkBuffer), 0);
-		if (!(checkBuffer[0] == 1) || !(checkBuffer[1] == 2) || !(checkBuffer[2] == 0))
-		{
-			printf("Connection error!\n");
-			*isConnected = false;
-		}
-		checkBuffer[0] = 2;
-		checkBuffer[1] = 0;
-		checkBuffer[2] = 1;
-		send(clientSocket, checkBuffer, sizeof(checkBuffer), 0);
-	} while (*isConnected);
+		PlayInformation(disconnect, '\0');
+		return;
+	}
+	int res = buffer[3];
+	*result = (ShotResult)res;
 }

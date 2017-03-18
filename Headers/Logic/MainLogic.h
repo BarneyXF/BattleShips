@@ -1,5 +1,6 @@
 #pragma once
 #include "winsock2.h"
+#include <time.h>
 
 const unsigned short numOf4Ships = 1;
 const unsigned short numOf3Ships = 2;
@@ -115,3 +116,4 @@ ShotResult ShootingChecker(int *x, int *y, SeaCell(*field)[11][11], Player(*play
 ShotResult CompareCoord(int *x, int *y, SeaCell(*field)[11][11], 
 			Player(*playersPointer), int numOfShip, int numOfDeck);
 bool Check(char symbol, char leftBorder, char rightBorder);
+void Timer(int time, int x, int y);
