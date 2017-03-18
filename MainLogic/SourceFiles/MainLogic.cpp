@@ -13,8 +13,6 @@
 *
 */
 
-// TODO: SOME REPAIRS
-
 // Main function.
 int main()
 {
@@ -67,19 +65,26 @@ bool PlacingShips(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 				
 				char charAlign = '\0';
 				// If we have ship with less than 2 decks we don't need to ask alignment.
+
 				if (numOfDecks > 1)
 				{
 					PlacingInformation(placeMode, '\0', 0, 0);
-					if (!GetNum(&charAlign, Left_Border, Right_BorderOfAlign))
+					do
 					{
-						return false;
-					}
+						if (!GetNum(&charAlign, 'A', 'z'))
+						{
+							return false;
+						}
+						if ((charAlign == 'H') || (charAlign == 'V'))
+						{
+							charAlign += 32;
+						}
+					} while ((charAlign != 'v') && (charAlign != 'h'));
 				}
 				
 				PlacingInformation(checking, '\0', 0, 0);
-				int placingMode = charAlign - '0';
 
-				if (!Placing(x, y, placingMode, numOfDecks, shipCounter, field, playersPointer))
+				if (!Placing(x, y, charAlign, numOfDecks, shipCounter, field, playersPointer))
 				{
 					PlacingInformation(wrong, '\0', 0, 0);
 					j++;
@@ -104,12 +109,24 @@ bool PlacingShips(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 			numOfShipsOfType++;
 			for (int j = numOfShipsOfType; j > 0; j--)
 			{
-				//srand(time(0));
 				int x = rand() % 10 + 0;
 				int y = rand() % 10 + 0;
 				int placingMode = rand() % 2 + 0;
-
-				if (!Placing(x, y, placingMode, numOfDecks, shipCounter, field, playersPointer))
+				char placingChar;
+				switch (placingMode)
+				{
+					case 0:
+					{
+						placingChar = 'h';
+						break;
+					}
+					case 1:
+					{
+						placingChar = 'v';
+						break;
+					}
+				}
+				if (!Placing(x, y, placingChar, numOfDecks, shipCounter, field, playersPointer))
 				{
 					j++;
 					continue;
@@ -128,6 +145,7 @@ bool PlacingShips(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 	for (int i = 0; i < 4; i++)
 		for (int j = 0; j < 40; j++)
 			RepaintCell(j, i + 15, " ", infoMode);
+
 	RepaintCell(0, 0, "", infoMode);
 	ClearInfoScreen();
 	RepaintCell(0, 15, "", infoMode);
@@ -155,9 +173,6 @@ bool PlacingShips(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 				shipCounter++;
 			}
 		}
-	}
-	if (vsAI)
-	{
 		Repaint(field, enemysfield, single);
 	}
 	else
@@ -168,7 +183,7 @@ bool PlacingShips(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 }
 
 // Placing ships align and fill switching function.
-bool Placing(int x, int y, int placingMode, int numOfDecks, int shipCounter, 
+bool Placing(int x, int y, char placingMode, int numOfDecks, int shipCounter, 
 			 SeaCell(*field)[11][11], Player(*playersPointer))
 {
 	// If we have ship with less than 2 decks we don't need to ask alignment.
@@ -186,7 +201,7 @@ bool Placing(int x, int y, int placingMode, int numOfDecks, int shipCounter,
 	}
 	switch (placingMode)
 	{
-		case 0:
+		case 'h':
 		{
 			if (PlacingCheck(x, y, field, playersPointer, numOfDecks, 1, 0))
 			{
@@ -198,7 +213,7 @@ bool Placing(int x, int y, int placingMode, int numOfDecks, int shipCounter,
 			}
 			break;
 		}
-		case 1:
+		case 'v':
 		{
 			if (PlacingCheck(x, y, field, playersPointer, numOfDecks, 0, 1))
 			{

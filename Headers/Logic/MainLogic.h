@@ -102,7 +102,7 @@ typedef struct
  
 bool PlacingShips(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11], 
 			Player(*playersPointer), Player(*aisPointer), char random, bool vsAI);
-bool Placing(int x, int y, int placingMode, int numOfDecks, int shipCounter, 
+bool Placing(int x, int y, char placingMode, int numOfDecks, int shipCounter, 
 			SeaCell(*field)[11][11], Player(*playersPointer));
 bool PlacingCheck(int x, int y, SeaCell(*field)[11][11], Player(*player), 
 			int totalNumOfDecks, int xAugment, int yAugment);

@@ -71,14 +71,11 @@ void AfterPlayersShipWasKilled(int x, int y, DamagedShipToBeDestroedByAI *shipTo
 	// Clean intermidiate data of destroyed ship.
 	shipToAttack->numberOfDestroyedDecks = 0;
 
-	// TODO: function, that will set 'marked' to all squares of 
-	// 'playersField' near destroyed ship, so AI ignores them. 
-
 	// Allows random square shooting.
 	shipToAttack->specialTactic = false;
 
 }
-
+//Function, that will set 'marked' to all squares of 'playersField' near destroyed ship, so AI ignores them. 
 void SetMarkedSellsAroundKilledShip(int x, int y, DamagedShipToBeDestroedByAI *shipToAttack,
 	SeaCell(*playersField)[11][11], Player *playersPointer)
 {

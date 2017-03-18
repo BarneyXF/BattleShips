@@ -14,7 +14,7 @@ HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 *
 */
 
-// TODO: repair exiting, vertical/horizontal
+// TODO: repair exiting
 
 // Main menu of the game.	Console func.
 void Menu()
@@ -130,16 +130,20 @@ void Menu()
 void UseRandom(char *random)
 {
 	system("cls");
-	printf("\tBattleShips.\n\nDo you want to place ships by yourself(if no, we will use randomizer)?\n(y/n)\n");
+	printf("\tBattleShips.\n\nDo you want to place ships by yourself(if no, we will use randomizer)?\n(P.S. make sure you use english letters)\n(y/n)\n");
 	do
 	{
-		if (!GetNum(random, 'n', 'y'))
+		if (!GetNum(random, 'A', 'z'))
 		{
 			system("cls");
 			printf("Good Bye! Have a nice day!\nPress any keyboard button to continue...\n");
 			// Waiting for players reaction
 			_getch();
 			return;
+		}
+		if ((*random == 'N') || (*random == 'Y'))
+		{
+			*random += 32;
 		}
 	} while ((*random != 'n') && (*random != 'y'));
 }
@@ -290,7 +294,7 @@ void RepaintCell(int _x, int _y, char *charToBePainted, RepaintMode mode)
 void ClearInfoScreen()
 {
 	for (int i = 0; i < 75; i++)
-		for (int j = 0; j < 11; j++)
+		for (int j = 0; j < 13; j++)
 			RepaintCell(i, j + 15, " ", infoMode);
 }
 
@@ -402,7 +406,7 @@ void PlacingInformation(InformatioForPlayerToBeShowed infoCode, char charToBeSho
 	}
 	case placeMode:
 	{
-		printf("\nChoose horizontal(0) or vertical(1) mode\n");
+		printf("\nChoose horizontal(h) or vertical(v) mode(make sure that you use english!!!)\n");
 		break;
 	}
 	case checking:
