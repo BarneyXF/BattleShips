@@ -13,6 +13,8 @@
 *
 */
 
+// TODO: MAKE FUNC FOR SWITCHES
+
 // Main function.
 int main()
 {
@@ -165,8 +167,21 @@ bool PlacingShips(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 				int x = rand() % 10 + 0;
 				int y = rand() % 10 + 0;
 				int placingMode = rand() % 2 + 0;
-
-				if (!Placing(x, y, placingMode, numOfDecks, shipCounter, enemysfield, aisPointer))
+				char placingChar;
+				switch (placingMode)
+				{
+				case 0:
+				{
+					placingChar = 'h';
+					break;
+				}
+				case 1:
+				{
+					placingChar = 'v';
+					break;
+				}
+				}
+				if (!Placing(x, y, placingChar, numOfDecks, shipCounter, enemysfield, aisPointer))
 				{
 					j++;
 					continue;
@@ -361,35 +376,39 @@ bool Playing(SeaCell(*playersField)[11][11], SeaCell(*enemyField)[11][11], Playe
 		{
 			case repeatedShot:
 			{
+				InitializingSound(missSound);
 				PlayInformation(repeat, '\0');
 				break;
 			}
 			case miss:
 			{
-
+				InitializingSound(missSound);
 				(*enemyField)[x][y] = marked;
 				PlayInformation(missed, '\0');
-				RepaintCell(x + 12, y, Miss_Cell, playMode);
+				RepaintCell(x + 12, y, Miss_Cell, playMode);	
 				break;
 			}
 
 			case damaged:
 			{
+				InitializingSound(explosionSound);
 				(*enemyField)[x][y] = kill;
 				(*enemysPointer).count.totalNumOfPlSquares--;
 				RepaintCell(x + 12, y, Killed_Cell, playMode);
 				RepaintCell(16, 23, "", infoMode);
-				PlayInformation(damage, '\0');
+				PlayInformation(damage, '\0');	
 				continue;
 			}
 
 			case killed:
 			{
+				InitializingSound(explosionSound);
 				(*enemyField)[x][y] = kill;
 				(*enemysPointer).count.totalNumOfPlSquares--;
 				RepaintCell(x + 12, y, Killed_Cell, playMode);
 				RepaintCell(16, 23, "", infoMode);
 				PlayInformation(killing, '\0');
+				
 				if ((*enemysPointer).count.totalNumOfPlSquares == 0)
 				{
 					return true;
@@ -532,6 +551,6 @@ void Timer(int time, int x, int y)
 		charTime[0] = (timer + '0');
 		charTime[1] = '\0';
 		RepaintCell(x, y, &charTime[0], infoMode);
-		Sleep(1000);
+		Sleep(1005);
 	}
 }

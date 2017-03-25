@@ -213,6 +213,7 @@ void Client(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 				case repeatedShot:
 				{
 					ClientInformation(clientRepeated, '\0', x, y);
+					InitializingSound(missSound);
 					break;
 				}
 				case miss:
@@ -221,6 +222,7 @@ void Client(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 					(*field)[x][y] = marked;
 					ClientInformation(clientMissed, '\0', x, y);
 					RepaintCell(x, y, Miss_Cell, playMode);
+					InitializingSound(missSound);
 					break;
 				}
 
@@ -231,6 +233,7 @@ void Client(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 					RepaintCell(x, y, Killed_Cell, playMode);
 					RepaintCell(0, 15, "", infoMode);
 					ClientInformation(clientDamaged, '\0', x, y);
+					InitializingSound(explosionSound);
 					break;
 				}
 
@@ -241,6 +244,7 @@ void Client(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 					RepaintCell(x, y, Killed_Cell, playMode);
 					RepaintCell(0, 15, "", infoMode);
 					ClientInformation(clientKilled, '\0', x, y);
+					InitializingSound(explosionSound);
 					break;
 				}
 			}
@@ -313,6 +317,7 @@ ResultOfTurn EnemysTurn(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 			case repeatedShot:
 			{
 				ClientInformation(clientRepeated, '\0', x, y);
+				InitializingSound(missSound);
 				break;
 			}
 			case miss:
@@ -321,6 +326,7 @@ ResultOfTurn EnemysTurn(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 				(*field)[x][y] = marked;
 				ClientInformation(clientMissed, '\0', x, y);
 				RepaintCell(x, y, Miss_Cell, playMode);
+				InitializingSound(missSound);
 				break;
 			}
 
@@ -331,6 +337,7 @@ ResultOfTurn EnemysTurn(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 				RepaintCell(x, y, Killed_Cell, playMode);
 				RepaintCell(0, 15, "", infoMode);
 				ClientInformation(clientDamaged, '\0', x, y);
+				InitializingSound(explosionSound);
 				break;
 			}
 
@@ -341,6 +348,7 @@ ResultOfTurn EnemysTurn(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 				RepaintCell(x, y, Killed_Cell, playMode);
 				RepaintCell(0, 15, "", infoMode);
 				ClientInformation(clientKilled, '\0', x, y);
+				InitializingSound(explosionSound);
 				if ((*playersPointer).count.totalNumOfPlSquares == 0)
 				{
 					buffer[0] = end;

@@ -14,7 +14,7 @@ HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 *
 */
 
-// Main menu of the game.	Console func.
+// Main menu of the game.
 void Menu()
 {
 	// Creating battle fields.
@@ -77,13 +77,14 @@ void Menu()
 					system("cls");
 					SetConsoleTextAttribute(hConsole, ShipsColor);
 					printf("You win!\n");
-
+					InitializingSound(winSound);
 				}
 				else
 				{
 					system("cls");
 					SetConsoleTextAttribute(hConsole, DamagedColor);
 					printf("You loose(fi vam)!\n");
+					InitializingSound(looseSound);
 				}
 				SetConsoleTextAttribute(hConsole, InfoColor);
 				break;
@@ -112,31 +113,34 @@ void Menu()
 			{
 				SetConsoleTextAttribute(hConsole, ShipsColor);
 				printf("You win!\n");
+				InitializingSound(winSound);
 				break;
 			}
 			case 0:
 			{
 				SetConsoleTextAttribute(hConsole, DamagedColor);
 				printf("You loose(fi vam)!\n");
+				InitializingSound(looseSound);
 				break;
 			}
 			default:
 			{
 				SetConsoleTextAttribute(hConsole, InfoColor);
 				printf("Connection was lost!\n");
+				InitializingSound(lostConnectionSound);
 				break;
 			}
 			}
 		}
 		SetConsoleTextAttribute(hConsole, InfoColor);
 		printf("\nReturn to menu in:\n");
-		// Waiting for players reaction
+		// TODO: TIMER SOUND
 		Timer(5, 19, 2);
 		system("cls");
 	} while (true);
 }
 
-// We need yhis func to call from ServerClient project.
+// We need this func to call from ServerClient project.
 void UseRandom(char *random)
 {
 	system("cls");
@@ -158,7 +162,7 @@ void UseRandom(char *random)
 	} while ((*random != 'n') && (*random != 'y'));
 }
 
-// Printing fields on screen.	Console func.
+// Printing fields on screen.
 void Print(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11])
 {
 	// Set's color of text in console.
@@ -215,7 +219,7 @@ void Print(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11])
 			case ship:
 			{
 				SetConsoleTextAttribute(hConsole, CellsColor);
-				printf(Free_Cell);
+				printf(Ship_Cell);
 				break;
 			}
 			case marked:
@@ -236,7 +240,7 @@ void Print(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11])
 	}
 }
 
-// Printing some additional information.	Console func.
+// Printing some additional information.
 void Repaint(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11], sockaddr_in address)
 {
 	SetConsoleTextAttribute(hConsole, InfoColor);
@@ -307,12 +311,15 @@ void ClearInfoScreen()
 			RepaintCell(i, j + 15, " ", infoMode);
 }
 
-// Returns false if user pressed esc, gets pressed button.	Console func.
+// Returns false if user pressed esc, gets pressed button. 
+// Sound func!!!
+// Do not forget to place in graphics.
 bool GetNum(char *symbol, char leftBorder, char rightBorder)
 {
 	do
 	{
 		*symbol = _getch();
+		InitializingSound(menuSound);
 		if (*symbol == 27)
 		{
 			return false;

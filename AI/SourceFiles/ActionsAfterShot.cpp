@@ -1,6 +1,7 @@
 #include "../../Headers/AI/AI.h"
 #include "../../Headers/AI/ActionsAfterShot.h"
 
+
 // Making actions after getting info about result.
 // Returns true, if extra action given (shot damaged or killed ship).
 bool ContinueAction(int *x, int *y, ShotResult result, SeaCell(*playersField)[11][11],
@@ -8,26 +9,28 @@ bool ContinueAction(int *x, int *y, ShotResult result, SeaCell(*playersField)[11
 {
 	switch (result)
 	{
-	case miss:
-	{
-		// Put marker to reflect miss on player's field.
-		(*playersField)[*x][*y] = marked;
+		case miss:
+		{
+			// Put marker to reflect miss on player's field.
+			(*playersField)[*x][*y] = marked;
+			InitializingSound(missSound);
+			return false;
+		}
 
-		return false;
-	}
+		case damaged:
+		{
+			InitializingSound(explosionSound);
+			AfterPlayersShipWasDamaged(*x, *y, shipToAttack, playersField, playersPointer);	
+			return true;
+		}
 
-	case damaged:
-	{
-		AfterPlayersShipWasDamaged(*x, *y, shipToAttack, playersField, playersPointer);
-		return true;
-	}
-
-	case killed:
-	{
-		AfterPlayersShipWasKilled(*x, *y, shipToAttack, playersField, playersPointer);
-		if (playersPointer->count.totalNumOfPlSquares == 0) return false;
-		return true;
-	}
+		case killed:
+		{
+			InitializingSound(explosionSound);
+			AfterPlayersShipWasKilled(*x, *y, shipToAttack, playersField, playersPointer);
+			if (playersPointer->count.totalNumOfPlSquares == 0) return false;
+			return true;
+		}
 	}
 }
 

@@ -1,5 +1,6 @@
 #pragma once
 #include "../Logic/MainLogic.h"
+#include "../Sound/SoundHeaders.h"
 
 bool ContinueAction(int *x, int *y, ShotResult result, SeaCell(*playersField)[11][11],
 					Player(*playersPointer), DamagedShipToBeDestroedByAI(*shipToAttack));

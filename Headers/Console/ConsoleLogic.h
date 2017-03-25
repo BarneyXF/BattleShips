@@ -2,6 +2,7 @@
 
 #include "../Logic/MainLogic.h"
 #include "../ServerClient/ClientServerPart.h"
+#include "../Sound/SoundHeaders.h"
 #include <math.h>
 #include <random>
 #include <iostream> 

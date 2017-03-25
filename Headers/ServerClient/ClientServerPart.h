@@ -3,6 +3,7 @@
 
 #include "../Logic/MainLogic.h"
 #include "../Console/ConsoleLogic.h"
+#include "../Sound/SoundHeaders.h"
 #include "winsock2.h"
 #include "conio.h"
 #include "winsock2.h"
