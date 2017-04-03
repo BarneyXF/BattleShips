@@ -1,9 +1,11 @@
 #include "../../Headers/Sound/SoundHeaders.h"
+#include <process.h>
 
 void InitializingSound(SoundToPlay sound)
 {
-	std::thread soundThread(Play, sound);
-	soundThread.detach();
+	
+	std::thread *soundThread = new std::thread(Play, sound);
+	soundThread->detach();
 }
 
 void Play(SoundToPlay sound)

@@ -32,7 +32,7 @@ void ChoosingTactic(int *x, int *y, DamagedShipToBeDestroedByAI *shipToAttack, S
 // Choosing square to shoot.
 void ChooseRandomSquare(int(*x), int(*y), SeaCell(*playersField)[11][11])
 {
-	SeaCell squareToShoot = empty;
+	SeaCell squareToShoot = emptyCell;
 
 	do
 	{
@@ -227,7 +227,7 @@ void CheckLeftShotPossibility(DamagedShipToBeDestroedByAI *shipToAttack, SeaCell
 	*tryY = shipToAttack->shotShipDecksCoordinates.y[0];
 
 	// Keeps temporarily unchecked for possibility of shot cell.
-	SeaCell cellToShoot = empty;
+	SeaCell cellToShoot = emptyCell;
 
 	// Continuous checking cells, until sea cell was not shot by AI before.
 	do
@@ -262,7 +262,7 @@ void CheckRightShotPossibility(DamagedShipToBeDestroedByAI *shipToAttack, SeaCel
 	*tryY = shipToAttack->shotShipDecksCoordinates.y[0];
 
 	// Keeps temporarily unchecked for possibility of shot cell.
-	SeaCell cellToShoot = empty;
+	SeaCell cellToShoot = emptyCell;
 
 	// Continuous checking cells, until sea cell was not shot by AI before.
 	do
@@ -297,7 +297,7 @@ void CheckTopShotPossibility(DamagedShipToBeDestroedByAI *shipToAttack, SeaCell(
 	*tryY = shipToAttack->shotShipDecksCoordinates.y[0];
 
 	// Keeps temporarily unchecked for possibility of shot cell.
-	SeaCell cellToShoot = empty;
+	SeaCell cellToShoot = emptyCell;
 
 	// Continuous checking cells, until sea cell was not shot by AI before.
 	do
@@ -332,7 +332,7 @@ void CheckBottomShotPossibility(DamagedShipToBeDestroedByAI *shipToAttack, SeaCe
 	*tryY = shipToAttack->shotShipDecksCoordinates.y[0];
 
 	// Keeps temporarily unchecked for possibility of shot cell.
-	SeaCell cellToShoot = empty;
+	SeaCell cellToShoot = emptyCell;
 
 	// Continuous checking cells, until sea cell was not shot by AI before.
 	do

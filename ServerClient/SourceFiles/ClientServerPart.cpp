@@ -2,8 +2,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "../../Headers/ServerClient/ClientServerPart.h"
 
-// TODO: timer of turn(haven't idea how realize that without threads, so for now, we haven't it)
-
 // Server's logic func.
 void Server(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 	Player(*playersPointer), Player(*enemysPointer), char *random, int *battleResult)
@@ -208,6 +206,7 @@ void Client(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 			int y = buffer[2];
 
 			ShotResult result = ShootingChecker(&x, &y, field, playersPointer);
+			ClearInfoScreen();
 			switch (result)
 			{
 				case repeatedShot:
@@ -312,23 +311,26 @@ ResultOfTurn EnemysTurn(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 		int y = buffer[2];
 
 		ShotResult result = ShootingChecker(&x, &y, field, playersPointer);
+		ClearInfoScreen();
 		switch (result)
 		{
-			case repeatedShot:
-			{
-				ClientInformation(clientRepeated, '\0', x, y);
-				InitializingSound(missSound);
-				break;
-			}
-			case miss:
-			{
+		case repeatedShot:
+		{
+			RepaintCell(0, 15, "", infoMode);
+			ClientInformation(clientRepeated, '\0', x, y);
+			InitializingSound(missSound);
+			break;
+		}
+		case miss:
+		{
 
-				(*field)[x][y] = marked;
-				ClientInformation(clientMissed, '\0', x, y);
-				RepaintCell(x, y, Miss_Cell, playMode);
-				InitializingSound(missSound);
-				break;
-			}
+			(*field)[x][y] = marked;
+			RepaintCell(0, 15, "", infoMode);
+			ClientInformation(clientMissed, '\0', x, y);
+			RepaintCell(x, y, Miss_Cell, playMode);
+			InitializingSound(missSound);
+			break;
+		}
 
 			case damaged:
 			{

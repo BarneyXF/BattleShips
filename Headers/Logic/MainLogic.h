@@ -19,7 +19,7 @@ enum ShipType
 
 enum SeaCell
 {
-	empty, ship, kill, marked
+	emptyCell, ship, kill, marked
 };
 
 enum ShotResult

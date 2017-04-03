@@ -46,53 +46,36 @@ bool PlacingShips(SeaCell(*field)[11][11], SeaCell(*enemysfield)[11][11],
 			numOfShipsOfType++;
 			for (int j = numOfShipsOfType; j > 0; j--)
 			{
-				char charX, charY;
+				char charX = 0, charY = 0;
 				ClearInfoScreen();
 				RepaintCell(0, 15, "", infoMode);
-				PlacingInformation(currentAction, '\0', 0, 0);
-				PlacingInformation(xForPlace, '\0', numOfDecks, 0);
-				if (!GetNum(&charX, Left_Border, Right_Border))
+				PlayInformation(currentPlaceAction, numOfDecks + '0');
+				bool horAlign;
+				ShipCell ship = ShipsPlaceSelector(numOfDecks, field, enemysfield, &horAlign);
+				if (ship.x[0] == -1)
 				{
 					return false;
 				}
-				PlacingInformation(yIs, charX, 0, 0);
-				if (!GetNum(&charY, Left_Border, Right_Border))
-				{
-					j++;
-					continue;
-				}
-				PlacingInformation(yForPlace, charY, numOfDecks, j);
-				int x = charX - '0';
-				int y = charY - '0';
-
-				
 				char charAlign = '\0';
-				// If we have ship with less than 2 decks we don't need to ask alignment.
-
-				if (numOfDecks > 1)
+				if (horAlign)
 				{
-					PlacingInformation(placeMode, '\0', 0, 0);
-					do
-					{
-						if (!GetNum(&charAlign, 'A', 'z'))
-						{
-							return false;
-						}
-						if ((charAlign == 'H') || (charAlign == 'V'))
-						{
-							charAlign += 32;
-						}
-					} while ((charAlign != 'v') && (charAlign != 'h'));
+					charAlign = 'h';
 				}
-				
-				PlacingInformation(checking, '\0', 0, 0);
-
+				else
+				{
+					charAlign = 'v';
+				}
+				int x = ship.x[0];
+				int y = ship.y[0];
 				if (!Placing(x, y, charAlign, numOfDecks, shipCounter, field, playersPointer))
 				{
+					ClearInfoScreen();
+					RepaintCell(0, 15, "", infoMode);
 					PlacingInformation(wrong, '\0', 0, 0);
 					j++;
 					continue;
 				}
+				
 				
 				for (int i = 0; i < numOfDecks; i++)
 				{
@@ -272,7 +255,7 @@ bool PlacingCheck(int x, int y, SeaCell(*field)[11][11], Player (*player),
 				{
 					switch ((*field)[xOffset - 1 + squaresY][yOffset - 1 + squaresX])
 					{
-						case empty:
+						case emptyCell:
 						{
 							canPlace = true;
 							break;
@@ -348,22 +331,16 @@ bool Playing(SeaCell(*playersField)[11][11], SeaCell(*enemyField)[11][11], Playe
 	{
 		char charX, charY;
 		ClearInfoScreen();
-		RepaintCell(0, 14, "", infoMode);
-		PlayInformation(currentAction, '\0');
-		PlayInformation(xCoordinate, '\0');
-		if (!GetNum(&charX, Left_Border, Right_Border))
+		RepaintCell(0, 15, "", infoMode);
+		PlayInformation(currentShotAction, '\0');
+
+		ShipCell ship = ShipToShootSelector(playersField, enemyField);
+		int x = ship.x[0];
+		int y = ship.y[0];
+		if (x == -1)
 		{
 			return false;
 		}
-		PlayInformation(xIs, charX);
-		if (!GetNum(&charY, Left_Border, Right_Border))
-		{
-			continue;
-		}
-		PlayInformation(yIs, charY);
-		int x = charX - '0';
-		int y = charY - '0';
-
 		if (vsAI)
 		{
 			result = ShootingChecker(&x, &y, enemyField, enemysPointer);
@@ -372,6 +349,9 @@ bool Playing(SeaCell(*playersField)[11][11], SeaCell(*enemyField)[11][11], Playe
 		{
 			SendToCheck(x, y, &result, socket, dest_addr);
 		}
+		ClearInfoScreen();
+		RepaintCell(0, 15, "", infoMode);
+		PlayInformation(shotResult, '\0');
 		switch (result)
 		{
 			case repeatedShot:
@@ -395,8 +375,10 @@ bool Playing(SeaCell(*playersField)[11][11], SeaCell(*enemyField)[11][11], Playe
 				(*enemyField)[x][y] = kill;
 				(*enemysPointer).count.totalNumOfPlSquares--;
 				RepaintCell(x + 12, y, Killed_Cell, playMode);
-				RepaintCell(16, 23, "", infoMode);
-				PlayInformation(damage, '\0');	
+				RepaintCell(16, 15, "", infoMode);
+				PlayInformation(damage, '\0');
+				RepaintCell(x + 12, y, Killed_Cell, repeatMode);
+				RepaintCell(16, 15, "", infoMode);
 				continue;
 			}
 
@@ -406,9 +388,10 @@ bool Playing(SeaCell(*playersField)[11][11], SeaCell(*enemyField)[11][11], Playe
 				(*enemyField)[x][y] = kill;
 				(*enemysPointer).count.totalNumOfPlSquares--;
 				RepaintCell(x + 12, y, Killed_Cell, playMode);
-				RepaintCell(16, 23, "", infoMode);
+				RepaintCell(16, 15, "", infoMode);
 				PlayInformation(killing, '\0');
-				
+				RepaintCell(x + 12, y, Killed_Cell, repeatMode);
+				RepaintCell(16, 15, "", infoMode);
 				if ((*enemysPointer).count.totalNumOfPlSquares == 0)
 				{
 					return true;
@@ -417,7 +400,7 @@ bool Playing(SeaCell(*playersField)[11][11], SeaCell(*enemyField)[11][11], Playe
 			}
 		}
 
-		RepaintCell(0, 25, "", infoMode);
+		RepaintCell(0, 16, "", infoMode);
 		
 		
 		if ((*enemysPointer).count.totalNumOfPlSquares > 0)
@@ -433,7 +416,7 @@ bool Playing(SeaCell(*playersField)[11][11], SeaCell(*enemyField)[11][11], Playe
 				// Enemy's turn
 				char s[22];
 				ClientInformation(clientWait, &s, 0, 0);
-				Timer(5, 14, 26);
+				Timer(5, 14, 18);
 				ResultOfTurn isWin = EnemysTurn(playersField, enemyField, playersPointer, enemysPointer, socket, dest_addr, x, y);
 				if (isWin == win)
 				{
@@ -482,7 +465,7 @@ ShotResult ShootingChecker(int *x, int *y, SeaCell(*field)[11][11], Player(*play
 			}
 		}
 	}
-	else if ((*field)[*x][*y] != empty)
+	else if ((*field)[*x][*y] != emptyCell)
 	{
 		result = repeatedShot;
 	}
@@ -552,5 +535,6 @@ void Timer(int time, int x, int y)
 		charTime[1] = '\0';
 		RepaintCell(x, y, &charTime[0], infoMode);
 		Sleep(1005);
+		printf("\a");
 	}
 }

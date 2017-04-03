@@ -3,8 +3,9 @@
 #include "../../Headers/Console/ConsoleLogic.h"
 #include "../../MainLogic/SourceFiles/stdafx.h"
 
-
 HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+
+// TODO: information, place resources, cursor.
 
 /*
 *
@@ -30,22 +31,26 @@ void Menu()
 		{
 			for (int j = 0; j < 10; j++)
 			{
-				playersBattleSea[i][j] = empty;
-				enemysBattleSea[i][j] = empty;
+				playersBattleSea[i][j] = emptyCell;
+				enemysBattleSea[i][j] = emptyCell;
 			}
 		}
-		printf("\t BattleShips.\n\n");
-		printf(" 1 ) Play vs AI.\n");
-		printf(" 2 ) Create server.\n");
-		printf(" 3 ) Connect to server.\n");
-		printf("esc) Exit.\n");
+		std::cout << "\t BattleShips.\n" << std::endl;
+		std::cout << " - Play vs AI." << std::endl;
+		std::cout << " - Create local server." << std::endl;
+		std::cout << " - Connect to local server." << std::endl;
+		std::cout << " - Exit." << std::endl;
+		COORD coordinates;
+		coordinates.X = 0;
+		coordinates.Y = 2;
 		char choise;
-		if (!GetNum(&choise, '1', '3'))
+		choise = GoThroughMenu(2, 5, 0, 0, coordinates);
+		if (choise == '4')
 		{
 			system("cls");
-			printf("Good Bye! Have a nice day!\nPress any keyboard button to continue...\n");
+			std::cout << "Good Bye! Have a nice day!" << std::endl;
 			// Waiting for players reaction
-			_getch();
+			system("pause");
 			return;
 		}
 		// Creating players.
@@ -61,6 +66,11 @@ void Menu()
 				char random;
 				srand(time(0));
 				UseRandom(&random);
+				if (random == '\0')
+				{
+					system("cls");
+					continue;
+				}
 				if (!PlacingShips(&playersBattleSea, &enemysBattleSea, &player, &ai, random, true))
 				{
 					system("cls");
@@ -76,14 +86,14 @@ void Menu()
 				{
 					system("cls");
 					SetConsoleTextAttribute(hConsole, ShipsColor);
-					printf("You win!\n");
+					std::cout << "You win!!!" << std::endl;
 					InitializingSound(winSound);
 				}
 				else
 				{
 					system("cls");
 					SetConsoleTextAttribute(hConsole, DamagedColor);
-					printf("You loose(fi vam)!\n");
+					std::cout << "You loose(fi vam)!" << std::endl;
 					InitializingSound(looseSound);
 				}
 				SetConsoleTextAttribute(hConsole, InfoColor);
@@ -93,6 +103,7 @@ void Menu()
 			{
 				char random = 'n';
 				Player enemy;
+				system("cls");
 				Server(&playersBattleSea, &enemysBattleSea, &player, &enemy, &random, &battleResult);
 				break;
 			}
@@ -112,29 +123,29 @@ void Menu()
 			case 1:
 			{
 				SetConsoleTextAttribute(hConsole, ShipsColor);
-				printf("You win!\n");
+				std::cout << "You win!!!" << std::endl;
 				InitializingSound(winSound);
 				break;
 			}
 			case 0:
 			{
 				SetConsoleTextAttribute(hConsole, DamagedColor);
-				printf("You loose(fi vam)!\n");
+				std::cout << "You loose(fi vam)!" << std::endl;
 				InitializingSound(looseSound);
 				break;
 			}
 			default:
 			{
 				SetConsoleTextAttribute(hConsole, InfoColor);
-				printf("Connection was lost!\n");
+				std::cout << "Connection was lost!" << std::endl;
 				InitializingSound(lostConnectionSound);
 				break;
 			}
 			}
 		}
 		SetConsoleTextAttribute(hConsole, InfoColor);
-		printf("\nReturn to menu in:\n");
-		// TODO: TIMER SOUND
+		//system("cls");
+		std::cout << "\nReturn to menu in:" << std::endl;
 		Timer(5, 19, 2);
 		system("cls");
 	} while (true);
@@ -144,22 +155,32 @@ void Menu()
 void UseRandom(char *random)
 {
 	system("cls");
-	printf("\tBattleShips.\n\nDo you want to place ships by yourself(if no, we will use randomizer)?\n(P.S. make sure you use english letters)\n(y/n)\n");
-	do
+	std::cout << "\tBattleShips.\n" << std::endl;
+	std::cout << "Do you want to place ships by yourself?" << std::endl;
+	std::cout << " - By myself." << std::endl;
+	std::cout << " - By randomizer." << std::endl;
+	COORD coordinates;
+	coordinates.X = 0;
+	coordinates.Y = 3;
+	char choise = GoThroughMenu(3, 4, 0, 0, coordinates);
+	switch (choise)
 	{
-		if (!GetNum(random, 'A', 'z'))
+		case '2':
 		{
-			system("cls");
-			printf("Good Bye! Have a nice day!\nPress any keyboard button to continue...\n");
-			// Waiting for players reaction
-			_getch();
+			*random = 'y';
+			break;
+		}
+		case '3':
+		{
+			*random = 'n';
+			break;
+		}
+		case 27:
+		{
+			*random = '\0';
 			return;
 		}
-		if ((*random == 'N') || (*random == 'Y'))
-		{
-			*random += 32;
-		}
-	} while ((*random != 'n') && (*random != 'y'));
+	}
 }
 
 // Printing fields on screen.
@@ -167,77 +188,84 @@ void Print(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11])
 {
 	// Set's color of text in console.
 	SetConsoleTextAttribute(hConsole, InfoColor);
-	printf("  0 1 2 3 4 5 6 7 8 9\t  0 1 2 3 4 5 6 7 8 9\n");
+	CONSOLE_CURSOR_INFO cursor;
+	GetConsoleCursorInfo(hConsole, &cursor);
+	cursor.bVisible = false;
+	SetConsoleCursorInfo(hConsole, &cursor);
+	std::cout << "  0 1 2 3 4 5 6 7 8 9\t  0 1 2 3 4 5 6 7 8 9" << std::endl;
 	for (int j = 0; j < 10; j++)
 	{
 		SetConsoleTextAttribute(hConsole, InfoColor);
-		printf("%i ", j);
+		std::cout << j;
 		for (int i = 0; i < 10; i++)
 		{
 			switch ((*field)[i][j])
 			{	
-			case empty:
-			{
-				SetConsoleTextAttribute(hConsole, CellsColor);
-				printf(Free_Cell);
-				break;
+				case emptyCell:
+				{
+					SetConsoleTextAttribute(hConsole, CellsColor);
+					std::cout << Free_Cell;				
+					break;
+				}
+				case ship:
+				{
+					SetConsoleTextAttribute(hConsole, ShipsColor);
+					std::cout << Ship_Cell;
+					break;
+				}
+				case marked:
+				{
+					SetConsoleTextAttribute(hConsole, MissedColor);
+					std::cout << Miss_Cell;
+					break;
+				}
+				case kill:
+				{
+					SetConsoleTextAttribute(hConsole, DamagedColor);
+					std::cout << Killed_Cell;
+					break;
+				}
 			}
-			case ship:
-			{
-				SetConsoleTextAttribute(hConsole, ShipsColor);
-				printf(Ship_Cell);
-				break;
-			}
-			case marked:
-			{
-				SetConsoleTextAttribute(hConsole, MissedColor);
-				printf(Miss_Cell);
-				break;
-			}
-			case kill:
-			{
-				SetConsoleTextAttribute(hConsole, DamagedColor);
-				printf(Killed_Cell);
-				break;
-			}
-			}
+			std::cout << "\b";
 		}
 		SetConsoleTextAttribute(hConsole, InfoColor);
-		printf("\t%i ", j);
+		std::cout << "\t" << j;
 		for (int i = 0; i < 10; i++)
 		{
 			SetConsoleTextAttribute(hConsole, InfoColor);
 			switch ((*enemyField)[i][j])
 			{
-
-			case empty:
-			{
-				SetConsoleTextAttribute(hConsole, CellsColor);
-				printf(Free_Cell);
-				break;
+				case emptyCell:
+				{
+					SetConsoleTextAttribute(hConsole, CellsColor);
+					std::cout << Free_Cell;				
+					break;
+				}
+				case ship:
+				{
+					SetConsoleTextAttribute(hConsole, CellsColor);
+					std::cout << Ship_Cell;
+					break;
+				}
+				case marked:
+				{
+					SetConsoleTextAttribute(hConsole, MissedColor);
+					std::cout << Miss_Cell;
+					break;
+				}
+				case kill:
+				{
+					SetConsoleTextAttribute(hConsole, DamagedColor);
+					std::cout << Killed_Cell;
+					break;
+				}
 			}
-			case ship:
-			{
-				SetConsoleTextAttribute(hConsole, CellsColor);
-				printf(Ship_Cell);
-				break;
-			}
-			case marked:
-			{
-				SetConsoleTextAttribute(hConsole, MissedColor);
-				printf(Miss_Cell);
-				break;
-			}
-			case kill:
-			{
-				SetConsoleTextAttribute(hConsole, DamagedColor);
-				printf(Killed_Cell);
-				break;
-			}
-			}
+			std::cout << "\b";
 		}
-		printf("\n");
+		std::cout << std::endl;
 	}
+	cursor.bVisible = true;
+	SetConsoleCursorInfo(hConsole, &cursor);
 }
 
 // Printing some additional information.
@@ -245,8 +273,8 @@ void Repaint(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11], sockaddr_in 
 {
 	SetConsoleTextAttribute(hConsole, InfoColor);
 	system("cls");
-	printf("\t BattleShips: Player vs Player(ip: %s)\n\n", inet_ntoa(address.sin_addr));
-	printf("\t Your field \t\tEnemy's field\n\n");
+	std::cout << "\t BattleShips: Player vs Player(ip:" << inet_ntoa(address.sin_addr) << ")\n" << std::endl;
+	std::cout << "\t   Your field \t\tEnemy's field\n" << std::endl;
 	Print(field, enemyField);
 	SetConsoleTextAttribute(hConsole, InfoColor);
 }
@@ -258,13 +286,13 @@ void Repaint(SeaCell(*field)[11][11], SeaCell(*enemyField)[11][11], GameMode mod
 	system("cls");
 	if (single)
 	{
-		printf("\t BattleShips: Player vs AI(ip: localhost)\n\n");
+		std::cout << "\t BattleShips: Player vs AI(ip: localhost)\n" << std::endl;
 	}
 	else
 	{
-		printf("\t BattleShips: Player vs Player(ip: localhost(Server))\n\n");
+		std::cout << "\t BattleShips: Player vs AI(ip: localhost(Server))\n" << std::endl;
 	}
-	printf("\t Your field \t\tEnemy's field\n\n");
+	std::cout << "\t Your field \t\tEnemy's field\n" << std::endl;
 	Print(field, enemyField);
 	SetConsoleTextAttribute(hConsole, InfoColor);
 }
@@ -282,14 +310,28 @@ void RepaintCell(int _x, int _y, char *charToBePainted, RepaintMode mode)
 			coordinates.Y = _y + 5;
 			break;
 		}
-		case infoMode:
+		case advFieldMode:
 		{
-			SetConsoleTextAttribute(hConsole, InfoColor);
+			SetConsoleTextAttribute(hConsole, CellsColor);
 			coordinates.X = _x;
 			coordinates.Y = _y;
 			break;
 		}
+		case infoMode:
+		{
+			SetConsoleTextAttribute(hConsole, InfoColor);
+			coordinates.X = _x + 1;
+			coordinates.Y = _y;
+			break;
+		}
 		case playMode:
+		{
+			SetConsoleTextAttribute(hConsole, FreshShotColor);
+			coordinates.X = _x * 2 + 2;
+			coordinates.Y = _y + 5;
+			break;
+		}
+		case repeatMode:
 		{
 			SetConsoleTextAttribute(hConsole, DamagedColor);
 			coordinates.X = _x * 2 + 2;
@@ -299,7 +341,7 @@ void RepaintCell(int _x, int _y, char *charToBePainted, RepaintMode mode)
 	}
 	
 	SetConsoleCursorPosition(hConsole, coordinates);
-	printf("%s", charToBePainted);
+	std::cout << "\b" << charToBePainted;
 	SetConsoleTextAttribute(hConsole, InfoColor);
 }
 
@@ -317,7 +359,7 @@ void ClearInfoScreen()
 bool GetNum(char *symbol, char leftBorder, char rightBorder)
 {
 	do
-	{
+	{		
 		*symbol = _getch();
 		InitializingSound(menuSound);
 		if (*symbol == 27)
@@ -325,69 +367,72 @@ bool GetNum(char *symbol, char leftBorder, char rightBorder)
 			return false;
 		}
 	} while (!Check(*symbol, leftBorder, rightBorder));
+	
 	return true;
 }
+ 
 
 // Information for player(like asking him for coordinates etc).
 void PlayInformation(InformatioForPlayerToBeShowed infoCode, char charToBeShowed)
 {
 	switch (infoCode)
 	{
-	case currentAction:
-	{
-		printf("\nCurrent actions:\n\nPress \"esc\" to exit or \n");
-		break;
-	}
-	case xCoordinate:
-	{
-		printf("Enter x coordinate for shoot\n");
-		break;
-	}
-	case xIs:
-	{
-		printf("X coordinate is: %c\n\nEnter y coordinate\n", charToBeShowed);
-		break;
-	}
-	case yIs:
-	{
-		printf("Y coordinate is: %c\nShot result is: ", charToBeShowed);
-		break;
-	}
-	case missed:
-	{
-		printf("missed. Lol.\n");
-		break;
-	}
-	case repeat:
-	{
-		printf("are you serious? You shot at this point already!\n");
-		break;
-	}
-	case damage:
-	{
-		printf("damaged.\n");
-		printf("\nYour turn again. \nNext turn in:");
-		Timer(5, 14, 26);
-		break;
-	}
-	case killing:
-	{
-		printf("killed! Good job.\n");
-		printf("\nYour turn again.\nNext turn in:");
-		Timer(5, 14, 26);
-		break;
-	}
-	case AIturn:
-	{
-		printf("Now AI's turn.\nNext turn in:");
-		Timer(5, 14, 26);
-		break;
-	}
-	case disconnect:
-	{
-		printf("Connection was interrupted!\n");
-		break;
-	}
+		case currentPlaceAction:
+		{
+			std::cout << "Choose cell to place "<< charToBeShowed <<"-decked ship by \"W,A,S,D\"" << std::endl;
+			std::cout << "or arrows and ship's align by \"R\"" << std::endl;
+			std::cout << "or press \"ESC\" to exit." << std::endl;
+			break;
+		}
+		case currentShotAction:
+		{
+			std::cout << "Choose cell to shot opponent's ship by \"W,A,S,D\"" << std::endl;
+			std::cout << "or press \"ESC\" to exit." << std::endl;
+			break;
+		}
+		case shotResult:
+		{
+			std::cout << "Shot result is: ";
+			break;
+		}
+		case missed:
+		{
+			std::cout << "missed. Lol.\n" << std::endl;
+			break;
+		}
+		case repeat:
+		{
+			std::cout << "repeat. Are you serious? You shot at this point already!\n" << std::endl;
+			break;
+		}
+		case damage:
+		{
+			std::cout << "damaged.\n" << std::endl;
+			std::cout << "Your turn again." << std::endl;
+			std::cout << "Next turn in: ";
+			Timer(5, 14, 18);
+			break;
+		}
+		case killing:
+		{
+			std::cout << "killed! Good job.\n" << std::endl;
+			std::cout << "Your turn again." << std::endl;
+			std::cout << "Next turn in: ";
+			Timer(5, 14, 18);
+			break;
+		}
+		case AIturn:
+		{
+			std::cout << "\nNow Opponent's turn." << std::endl;
+			std::cout << "Next turn in: ";
+			Timer(5, 14, 18);
+			break;
+		}
+		case disconnect:
+		{
+			std::cout << "Connection was interrupted!" << std::endl;
+			break;
+		}
 	}
 }
 
@@ -396,51 +441,47 @@ void PlacingInformation(InformatioForPlayerToBeShowed infoCode, char charToBeSho
 {
 	switch (infoCode)
 	{
-	case currentAction:
-	{
-		printf("Current actions:\nPress \"esc\" to exit or \n");
-		break;
-	}
-	case xForPlace:
-	{
-		printf("Enter x coordinate for %i - deck's ship\n", numOfDecks);
-		break;
-	}
-	case yIs:
-	{
-		printf("X coordinate is: %c\n\nEnter y coordinate\n", charToBeShowed);
-		break;
-	}
-	case yForPlace:
-	{
-		printf("Y coordinate is: %c\n\n %i - deck's ships num is: %i", charToBeShowed, numOfDecks, numOfShips);
-		break;
-	}
-	case placeMode:
-	{
-		printf("\nChoose horizontal(h) or vertical(v) mode(make sure that you use english!!!)\n");
-		break;
-	}
-	case checking:
-	{
-		printf("Checking position, please wait\n");
-		break;
-	}
-	case wrong:
-	{
-		SetConsoleTextAttribute(hConsole, DamagedColor);
-		printf("\nWrong position, please choose another position.\n");
-		SetConsoleTextAttribute(hConsole, InfoColor);
-		printf("Return in:\n");
-		// Waiting for players reaction
-		Timer(5, 11, 28);
-		break;
-	}
-	case wait:
-	{
-		printf("\nPlaced! Please wait for ai's turn.\n");
-		break;
-	}
+		case xForPlace:
+		{
+			std::cout << "Enter x coordinate for " << numOfDecks << " - deck's ship" << std::endl;
+			break;
+		}
+		case shotResult:
+		{
+			std::cout << "X coordinate is: " << charToBeShowed << std::endl;
+			std::cout << "\nEnter y coordinate" << std::endl;
+			break;
+		}
+		case yForPlace:
+		{
+			std::cout << "Y coordinate is: " << charToBeShowed << "\n\n " << numOfDecks << " - deck's ships num is: " << numOfShips;
+			break;
+		}
+		case placeMode:
+		{
+			std::cout << "\nChoose horizontal(h) or vertical(v) mode(make sure that you use english!!!)" << std::endl;
+			break;
+		}
+		case checking:
+		{
+			std::cout << "Checking position, please wait." << std::endl;
+			break;
+		}
+		case wrong:
+		{
+			SetConsoleTextAttribute(hConsole, DamagedColor);
+			std::cout << "\nWrong position, please choose another position." << std::endl;
+			SetConsoleTextAttribute(hConsole, InfoColor);
+			std::cout << "Return in: ";
+			// Waiting for players reaction
+			Timer(5, 11, 17);
+			break;
+		}
+		case wait:
+		{
+			std::cout << "\nPlaced! Please wait for Opponent's turn." << std::endl;
+			break;
+		}
 	}
 }
 
@@ -451,52 +492,54 @@ void ClientInformation(InformatioForPlayerToBeShowed infoCode, char (*charToGett
 	{
 		case clientRepeated:
 		{
-			printf("Your enemy pretty stupid!(%i, %i)\n", x, y);
+			std::cout << "Your enemy pretty stupid!(" << x << ", " << y << ").\nNow opponent's turn.\n";
 			break;
 		}
 		case clientMissed:
 		{
-			printf("Your enemy missed!(%i, %i)\n", x, y);
+			std::cout << "Your enemy missed!(" << x << ", " << y << ").\nNow opponent's turn.\n";
 			break;
 		}
 		case clientDamaged:
 		{
-			printf("Your ship placed at %i, %i is damaged!\n", x, y);
+			std::cout << "Your ship placed at " << x << ", " << y << " is damaged!" << std::endl;
 			break;
 		}
 		case clientKilled:
 		{
-			printf("Your ship placed at %i, %i is killed!\n", x, y);
+			std::cout << "Your ship placed at " << x << ", " << y << " is killed!" << std::endl;
 			break;
 		}
 		case clientWait:
 		{
-			printf("Waiting!\nNext turn in:");
+			std::cout << "Waiting!\nNow opponent's turn.\nNext turn in:";
 			break;
 		}
 		case clientShoot:
 		{
-			printf("Enemy's shot.\n");
+			std::cout << "\nWaiting!\nOpponent's turn." << std::endl;
 			break;
 		}
 		case serverCreate:
 		{
-			printf("Server created! Waiting for players...\n");
+			std::cout << "Server created! Waiting for players..." << std::endl;
 			break;
 		}
 		case wsaError:
 		{
-			printf("WSAStarup error: %i\n", x);
+			std::cout << "WSAStarup error: " << x << std::endl;
 			break;
 		}
 		case socketError:
 		{
-			printf("Socket error. Cann't syncronise stages!\n");
+			std::cout << "Socket error. Cann't syncronise stages!" << std::endl;
 			break;
 		}
 		case getIP:
 		{
-			printf("Enter ip-address(you can exit with typing \"return\"):\n");
+			system("cls");
+			std::cout << "Enter ip-address (you can exit with typing \"return\"):" << std::endl;
+			//std::cin >> charToGetted;
 			scanf("%s", charToGetted);
 			break;
 		}
@@ -514,26 +557,302 @@ void PrintShotInfoForPlayer(int x, int y, ShotResult result, SeaCell(*playersFie
 	// Convert result to string for output.
 	switch (result)
 	{
-	case miss:
-	{
-		strResult = "miss";
-		break;
-	}
-	case killed:
-	{
-		strResult = "killed";
-		break;
-	}
+		case miss:
+		{
+			strResult = "miss";
+			break;
+		}
+		case killed:
+		{
+			strResult = "killed";
+			break;
+		}
 
-	case damaged:
-	{
-		strResult = "damaged";
-		break;
-	}
+		case damaged:
+		{
+			strResult = "damaged";
+			break;
+		}
 	}
 
 	std::cout << std::endl << "AI shoots cell {" << x << ";" << y << "}" << std::endl;
 	std::cout << "Result: " << strResult << std::endl << std::endl;
 	std::cout << "Next turn in:" << std::endl;
 	Timer(5, 14, 19);
+}
+
+//
+char GoThroughMenu(int upBound, int downBound, int leftBound, int rightBound, COORD startCoord)
+{
+	COORD coordinates;
+	coordinates.X = startCoord.X;
+	coordinates.Y = startCoord.Y;
+	SetConsoleCursorPosition(hConsole, coordinates);
+	do
+	{
+		char choise = _getch();
+		switch (choise)
+		{
+			case 57:
+			case 119:
+			case -26:
+			case VK_UP:
+			{
+				if (coordinates.Y > upBound)
+					coordinates.Y -= 1;
+				break;
+			}
+			case 53:
+			case 115:
+			case -21:
+			case VK_DOWN:
+			{
+				if (coordinates.Y < downBound)
+					coordinates.Y += 1;
+				break;
+			}
+			case VK_RETURN:
+			{
+				return (coordinates.Y + '0' - 1);
+			}
+			case VK_ESCAPE:
+			{
+				return '4';
+			}
+			default:
+			{
+				continue;
+			}
+		}
+		SetConsoleCursorPosition(hConsole, coordinates);
+
+	} while (true);
+}
+
+// 
+ShipCell ShipsPlaceSelector(int numOfDecks, SeaCell(*playersField)[11][11],
+	SeaCell(*enemyField)[11][11], bool *horAlign)
+{
+	*horAlign = true;
+	int upBound = 5, downBound = 14, leftBound = 2, rightBound = 20;
+	COORD coordinates;
+	coordinates.X = 2;
+	coordinates.Y = 5;
+	SetConsoleCursorPosition(hConsole, coordinates);
+	ShowGhostShip(coordinates.X, coordinates.Y, numOfDecks, *horAlign);
+	do
+	{
+		char choise = _getch();
+		switch (choise)
+		{
+			case 'W':
+			case 'w':
+			case -26:
+			case -106:
+			case VK_UP:
+			{
+				if (coordinates.Y > upBound)
+				{
+					coordinates.Y -= 1;
+				}
+				break;
+			}
+			case 'S':
+			case 's':
+			case -21:
+			case -101:
+			case VK_DOWN:
+			{
+				if (((coordinates.Y < downBound) && *horAlign) || ((coordinates.Y + numOfDecks - 1 < downBound) && !*horAlign))
+				{
+					coordinates.Y += 1;
+				}
+				break;
+			}
+			case 'A':
+			case 'a':
+			case -28:
+			case -108:
+			case VK_LEFT:
+			{
+				if (coordinates.X > leftBound)
+				{
+					coordinates.X -= 2;
+				}
+				break;
+			}
+			case 'D':
+			case 'd':
+			case -94:
+			case -126:
+			case VK_RIGHT:
+			{
+				if (((coordinates.X < rightBound) && !*horAlign) || ((coordinates.X + (numOfDecks * 2) <= rightBound) && *horAlign))
+				{
+					coordinates.X += 2;
+				}
+				break;
+			}
+			case 'R':
+			case 'r':
+			{
+				if (*horAlign)
+				{
+					*horAlign = false;
+					if (coordinates.Y + numOfDecks > downBound)
+					{
+						coordinates.Y -= coordinates.Y + numOfDecks - downBound - 1;
+						SetConsoleCursorPosition(hConsole, coordinates);
+					}
+				}
+				else
+				{
+					*horAlign = true;
+					if (coordinates.X + (numOfDecks * 2) > rightBound)
+					{
+						coordinates.X -= coordinates.X + (numOfDecks * 2) - rightBound - 2;
+						SetConsoleCursorPosition(hConsole, coordinates);
+					}
+				}
+				break;
+			}
+			case VK_RETURN:
+			{
+				ShipCell ship;
+				ship.x[0] = (coordinates.X - 1) / 2;
+				ship.y[0] = coordinates.Y - 5;
+				RepaintCell(0, 15, "", infoMode);
+				return ship;
+			}
+			case VK_ESCAPE:
+			{
+				ShipCell ship;
+				ship.x[0] = -1;
+				ship.y[0] = -1;
+				coordinates.X = 0;
+				coordinates.Y = 16;
+				SetConsoleCursorPosition(hConsole, coordinates);
+				return ship;
+			}
+			default:
+			{
+				continue;
+			}
+		}
+		RepaintCell(0, 4, "", infoMode);
+		Print(playersField, enemyField);
+		SetConsoleCursorPosition(hConsole, coordinates);
+		ShowGhostShip(coordinates.X, coordinates.Y, numOfDecks, *horAlign);
+	} while (true);
+}
+
+//
+void ShowGhostShip(int x, int y, int numOfDecks, bool horAlign)
+{
+	for (int i = 0; i < numOfDecks; i++)
+	{
+		if (horAlign)
+		{
+			RepaintCell(x + i * 2, y, Ship_Cell, advFieldMode);
+		}
+		else
+		{
+			RepaintCell(x, y + i, Ship_Cell, advFieldMode);
+		}
+	}
+	COORD coordinates;
+	coordinates.X = x;
+	coordinates.Y = y;
+	SetConsoleCursorPosition(hConsole, coordinates);
+}
+
+//
+ShipCell ShipToShootSelector(SeaCell(*playersField)[11][11],
+	SeaCell(*enemyField)[11][11])
+{
+	int upBound = 5, downBound = 14, leftBound = 26, rightBound = 46;
+	COORD coordinates;
+	coordinates.X = 26;
+	coordinates.Y = 5;
+	SetConsoleCursorPosition(hConsole, coordinates);
+	do
+	{
+		char choise = _getch();
+		switch (choise)
+		{
+			case 'W':
+			case 'w':
+			case -26:
+			case -106:
+			case VK_UP:
+			{
+				if (coordinates.Y > upBound)
+				{
+					coordinates.Y -= 1;
+				}
+				break;
+			}
+			case 'S':
+			case 's':
+			case -21:
+			case -101:
+			case VK_DOWN:
+			{
+				if (coordinates.Y < downBound)
+				{
+					coordinates.Y += 1;
+				}
+				break;
+			}
+			case 'A':
+			case 'a':
+			case -28:
+			case -108:
+			case VK_LEFT:
+			{
+				if (coordinates.X > leftBound)
+				{
+					coordinates.X -= 2;
+				}
+				break;
+			}
+			case 'D':
+			case 'd':
+			case -94:
+			case -126:
+			case VK_RIGHT:
+			{
+				if (coordinates.X < rightBound)
+				{
+					coordinates.X += 2;
+				}
+				break;
+			}
+			case VK_RETURN:
+			{
+				ShipCell ship;
+				ship.x[0] = (coordinates.X - leftBound) / 2;
+				ship.y[0] = coordinates.Y - upBound;
+				RepaintCell(0, 15, "", infoMode);
+				return ship;
+			}
+			case VK_ESCAPE:
+			{
+				ShipCell ship;
+				ship.x[0] = -1;
+				ship.y[0] = -1;
+				coordinates.X = 0;
+				coordinates.Y = 15;
+				SetConsoleCursorPosition(hConsole, coordinates);
+				return ship;
+			}
+			default:
+			{
+				continue;
+			}
+		}
+		RepaintCell(0, 4, "", infoMode);
+		Print(playersField, enemyField);
+		SetConsoleCursorPosition(hConsole, coordinates);
+	} while (true);
 }
