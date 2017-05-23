@@ -4,6 +4,8 @@
 #include "../ServerClient/ClientServerPart.h"
 #include "../Console/ConsoleLogic.h"
 #include "winsock2.h"
+#include "d3d9.h"
+#include "dinput.h"
 
 
 // Unneeded for graphics funcs.
