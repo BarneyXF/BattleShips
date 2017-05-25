@@ -5,6 +5,7 @@ if manually exit from game, both players are getting msg of loose
 screen isn't fully clear in game process
 app requires 2 button clicks, when you trying to exit
 some ships, placed on right border, have nearby out-of-field cells colored in blue, when opponent is placing his ships
+Player can't quit from server's waiting mode, he has to wait another player to connect
 	
 	FEATURES
 cursor reacts to 'delete' button (moving down) in player mode
