@@ -50,7 +50,7 @@ void Menu()
 			system("cls");
 			std::cout << "Good Bye! Have a nice day!" << std::endl;
 			// Waiting for players reaction
-			system("pause");
+			//system("pause");
 			return;
 		}
 		// Creating players.
@@ -348,7 +348,7 @@ void RepaintCell(int _x, int _y, char *charToBePainted, RepaintMode mode)
 // Function to clear additional info.
 void ClearInfoScreen()
 {
-	for (int i = 0; i < 75; i++)
+	for (int i = 0; i < 77; i++)
 		for (int j = 0; j < 15; j++)
 			RepaintCell(i, j + 15, " ", infoMode);
 }
@@ -590,22 +590,24 @@ char GoThroughMenu(int upBound, int downBound, int leftBound, int rightBound, CO
 	SetConsoleCursorPosition(hConsole, coordinates);
 	do
 	{
-		char choise = _getch();
+		int choise = _getch();
 		switch (choise)
 		{
-			case 57:
-			case 119:
-			case -26:
-			case VK_UP:
+			case 'W':
+			case 'w':
+			case 150:
+			case 230:
+			case 72:
 			{
 				if (coordinates.Y > upBound)
 					coordinates.Y -= 1;
 				break;
 			}
-			case 53:
-			case 115:
-			case -21:
-			case VK_DOWN:
+			case 'S':
+			case 's':
+			case 155:
+			case 235:
+			case 80:
 			{
 				if (coordinates.Y < downBound)
 					coordinates.Y += 1;
@@ -770,7 +772,7 @@ void ShowGhostShip(int x, int y, int numOfDecks, bool horAlign)
 ShipCell ShipToShootSelector(SeaCell(*playersField)[11][11],
 	SeaCell(*enemyField)[11][11])
 {
-	int upBound = 5, downBound = 14, leftBound = 26, rightBound = 46;
+	int upBound = 5, downBound = 14, leftBound = 26, rightBound = 44;// TODO:REPAIRED
 	COORD coordinates;
 	coordinates.X = 26;
 	coordinates.Y = 5;
@@ -782,9 +784,9 @@ ShipCell ShipToShootSelector(SeaCell(*playersField)[11][11],
 		{
 			case 'W':
 			case 'w':
-			case -26:
-			case -106:
-			case VK_UP:
+			case 150:
+			case 230:
+			case 72:
 			{
 				if (coordinates.Y > upBound)
 				{
@@ -794,9 +796,9 @@ ShipCell ShipToShootSelector(SeaCell(*playersField)[11][11],
 			}
 			case 'S':
 			case 's':
-			case -21:
-			case -101:
-			case VK_DOWN:
+			case 155:
+			case 235:
+			case 80:
 			{
 				if (coordinates.Y < downBound)
 				{
@@ -806,9 +808,9 @@ ShipCell ShipToShootSelector(SeaCell(*playersField)[11][11],
 			}
 			case 'A':
 			case 'a':
-			case -28:
-			case -108:
-			case VK_LEFT:
+			case 228:
+			case 148:
+			case 75:
 			{
 				if (coordinates.X > leftBound)
 				{
@@ -818,9 +820,9 @@ ShipCell ShipToShootSelector(SeaCell(*playersField)[11][11],
 			}
 			case 'D':
 			case 'd':
-			case -94:
-			case -126:
-			case VK_RIGHT:
+			case 162:
+			case 130:
+			case 77:
 			{
 				if (coordinates.X < rightBound)
 				{
@@ -843,6 +845,7 @@ ShipCell ShipToShootSelector(SeaCell(*playersField)[11][11],
 				ship.y[0] = -1;
 				coordinates.X = 0;
 				coordinates.Y = 15;
+				SetConsoleTextAttribute(hConsole, InfoColor);
 				SetConsoleCursorPosition(hConsole, coordinates);
 				return ship;
 			}
