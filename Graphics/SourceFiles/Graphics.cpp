@@ -1,3 +1,10 @@
 #include "../../Headers/Graphics/Graphics.h"
 
-// TODO: Place functions for graphics here.
+
+
+// New entry point of program
+int _stdcall WinMain(HINSTANCE instanceHandle, HINSTANCE previousInstanceHandle,
+	LPSTR commandLinePointer, int commandLineShow)
+{
+
+}
